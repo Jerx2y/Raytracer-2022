@@ -9,9 +9,9 @@ fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
-    let height = 800;
-    let width = 800;
-    let quality = 60; // From 0 to 100
+    let height = 1080;
+    let width = 1920;
+    let quality = 100; // From 0 to 100
     let path = "output/output.jpg";
 
     println!(
@@ -37,9 +37,9 @@ fn main() {
     for y in 0..height {
         for x in 0..width {
             let pixel_color = [
-                (y as f32 / height as f32 * 255.).floor() as u8,
-                ((x + height - y) as f32 / (height + width) as f32 * 255.).floor() as u8,
-                (x as f32 / height as f32 * 255.).floor() as u8,
+                (x as f64 / width as f64 * 255.).floor() as u8,
+                (y as f64 / height as f64 * 255.).floor() as u8,
+                (0.25 as f64 * 255. as f64).floor() as u8,
             ];
             let pixel = img.get_pixel_mut(x, height - y - 1);
             *pixel = image::Rgb(pixel_color);
