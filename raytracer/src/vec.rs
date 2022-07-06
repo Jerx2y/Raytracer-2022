@@ -1,7 +1,7 @@
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, /*Index, IndexMut, */ Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
 pub type Color = Vec3;
@@ -19,17 +19,19 @@ impl Vec3 {
         Self { x, y, z }
     }
 
-    pub fn dot(lhs: &Self, rhs: &Self) -> f64 {
+    pub fn dot(lhs: Self, rhs: Self) -> f64 {
         lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z
     }
 
-    pub fn corss(lhs: &Self, rhs: &Self) -> Self {
+    /*
+    pub fn corss(lhs: Self, rhs: Self) -> Self {
         Self {
             x: lhs.y * rhs.z - lhs.z * rhs.y,
             y: lhs.z * rhs.x - lhs.x * rhs.z,
             z: lhs.x * rhs.y - lhs.y * rhs.x,
         }
     }
+    */
 
     pub fn length_sqr(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
