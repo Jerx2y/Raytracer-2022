@@ -5,12 +5,19 @@ use image::{ImageBuffer, RgbImage};
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 
+mod vec;
+use vec::{Color, Point3, Vec3};
+
+mod ray;
+use ray::Ray;
+
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
-    let height = 1080;
-    let width = 1920;
+    let width = 400;
+    let height = 225;
+    let aspect_ratio = width as f64 / height as f64;
     let quality = 100; // From 0 to 100
     let path = "output/output.jpg";
 
@@ -33,20 +40,37 @@ fn main() {
         .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
         .progress_chars("#>-"));
 
+    // ===================== prework =====================
+
     // Generate image
+
+    let viewport_height = 2.0;
+    let viewport_width = aspect_ratio * viewport_height;
+    let focal_length = 1.0;
+
+    let origin = Point3::new(0.0, 0.0, 0.0);
+    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
+    let vertical = Vec3::new(0.0, viewport_height, 0.0);
+    let lower_left_corner =
+        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+
     for y in 0..height {
         for x in 0..width {
-            let pixel_color = [
-                (x as f64 / width as f64 * 255.).floor() as u8,
-                (y as f64 / height as f64 * 255.).floor() as u8,
-                (0.25 as f64 * 255. as f64).floor() as u8,
-            ];
+            let u = x as f64 / (width - 1) as f64;
+            let v = y as f64 / (height - 1) as f64;
+            let r = Ray::new(
+                origin,
+                lower_left_corner + horizontal * u + vertical * v - origin,
+            );
+            let pixel_color: Color = ray_color(r);
             let pixel = img.get_pixel_mut(x, height - y - 1);
-            *pixel = image::Rgb(pixel_color);
+            *pixel = image::Rgb(to_color256(pixel_color));
             progress.inc(1);
         }
     }
     progress.finish();
+
+    // ==================== afterwork ====================
 
     // Output image to file
     println!("Ouput image as \"{}\"", style(path).yellow());
@@ -59,4 +83,18 @@ fn main() {
     }
 
     exit(0);
+}
+
+fn ray_color(r: Ray) -> Color {
+    let unit_direction = r.dir.to_unit();
+    let t = 0.5 * (unit_direction.y + 1.0);
+    Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
+}
+
+fn to_color256(c: Color) -> [u8; 3] {
+    [
+        (c.x * 255.).floor() as u8,
+        (c.y * 255.).floor() as u8,
+        (c.z * 255.).floor() as u8,
+    ]
 }
