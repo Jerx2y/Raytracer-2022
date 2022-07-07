@@ -11,6 +11,12 @@ use vec::{Color, Point3, Vec3};
 mod ray;
 use ray::Ray;
 
+mod hittable;
+use hittable::{/* HitRecord,*/ Hittable, HittableList};
+
+mod sphere;
+use sphere::Sphere;
+
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
@@ -44,6 +50,12 @@ fn main() {
 
     // Generate image
 
+    // World
+    let mut world: HittableList = HittableList::new();
+    world.add(Box::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
+
+    // Camera
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
@@ -62,16 +74,16 @@ fn main() {
                 origin,
                 lower_left_corner + horizontal * u + vertical * v - origin,
             );
-            let pixel_color: Color = ray_color(r);
+            let pixel_color: Color = ray_color(r, &world);
             let pixel = img.get_pixel_mut(x, height - y - 1);
             *pixel = image::Rgb(to_color256(pixel_color));
             progress.inc(1);
         }
     }
-    progress.finish();
 
     // ==================== afterwork ====================
 
+    progress.finish();
     // Output image to file
     println!("Ouput image as \"{}\"", style(path).yellow());
     let output_image = image::DynamicImage::ImageRgb8(img);
@@ -85,15 +97,14 @@ fn main() {
     exit(0);
 }
 
-fn ray_color(r: Ray) -> Color {
-    let t = hit_sphere(Point3::new(0., 0., -1.), 0.5, r);
-    if t > 0. {
-        let n = (r.at(t) - Vec3::new(0., 0., -1.)).to_unit();
-        return Color::new(n.x + 1., n.y + 1., n.z + 1.) * 0.5;
+fn ray_color(r: Ray, world: &HittableList) -> Color {
+    if let Some(rec) = world.hit(r, 0., f64::MAX) {
+        (rec.normal + Color::new(1., 1., 1.)) * 0.5
+    } else {
+        let unit_direction = r.dir.to_unit();
+        let t = 0.5 * (unit_direction.y + 1.0);
+        Color::new(1., 1., 1.) * (1. - t) + Color::new(0.5, 0.7, 1.) * t
     }
-    let unit_direction = r.dir.to_unit();
-    let t = 0.5 * (unit_direction.y + 1.0);
-    Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
 }
 
 fn to_color256(c: Color) -> [u8; 3] {
@@ -104,6 +115,7 @@ fn to_color256(c: Color) -> [u8; 3] {
     ]
 }
 
+/*
 fn hit_sphere(center: Point3, radius: f64, r: Ray) -> f64 {
     let oc = r.orig - center;
     let a = Vec3::dot(r.dir, r.dir);
@@ -116,3 +128,4 @@ fn hit_sphere(center: Point3, radius: f64, r: Ray) -> f64 {
         (-b - discriminant.sqrt()) / (2. * a)
     }
 }
+*/
