@@ -1,21 +1,31 @@
+use std::sync::Arc;
+
+use super::material::Material;
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};
 
-#[derive(Copy, Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub mat_ptr: Arc<dyn Material>,
 }
 
 impl HitRecord {
-    pub fn new(p: Point3, normal: Vec3, t: f64, front_face: bool) -> Self {
+    pub fn new(
+        p: Point3,
+        normal: Vec3,
+        t: f64,
+        front_face: bool,
+        mat_ptr: Arc<dyn Material>,
+    ) -> Self {
         Self {
             p,
             normal,
             t,
             front_face,
+            mat_ptr,
         }
     }
 
@@ -34,7 +44,7 @@ pub trait Hittable {
 }
 
 pub struct HittableList {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
 }
 
 impl HittableList {
@@ -44,7 +54,7 @@ impl HittableList {
         }
     }
 
-    pub fn add(&mut self, object: Box<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object);
     }
 }

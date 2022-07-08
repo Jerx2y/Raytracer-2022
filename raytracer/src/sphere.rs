@@ -1,16 +1,23 @@
+use std::sync::Arc;
+
 use super::hittable::{HitRecord, Hittable};
+use super::material::Material;
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};
 
-#[derive(Copy, Clone)]
 pub struct Sphere {
     pub center: Point3,
     pub radius: f64,
+    pub mat_ptr: Arc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Point3, radius: f64, mat_ptr: Arc<dyn Material>) -> Self {
+        Self {
+            center,
+            radius,
+            mat_ptr,
+        }
     }
 }
 
@@ -40,6 +47,7 @@ impl Hittable for Sphere {
             (r.at(root) - self.center) / self.radius,
             root,
             false,
+            self.mat_ptr.clone(),
         );
 
         let outward_normal = (rec.p - self.center) / self.radius;

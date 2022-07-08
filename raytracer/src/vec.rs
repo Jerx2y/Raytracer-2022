@@ -55,29 +55,10 @@ impl Vec3 {
         }
     }
 
-    pub fn random_in_unit_sphere() -> Self {
-        loop {
-            let p = Vec3::random(-1., 1.);
-            if p.length() < 1. {
-                return p;
-            }
-        }
-    }
-
-    /*
     pub fn random_unit_vector() -> Self {
-        Vec3::random_in_unit_sphere().to_unit()
+        random_in_unit_sphere().to_unit()
     }
-    */
 
-    pub fn random_in_hemisphere(normal: Vec3) -> Self {
-        let in_unit_sphere = Vec3::random_in_unit_sphere();
-        if Vec3::dot(in_unit_sphere, normal) > 0. {
-            in_unit_sphere
-        } else {
-            -in_unit_sphere
-        }
-    }
     // vec3 random_in_hemisphere(const vec3& normal) {
     //     vec3 in_unit_sphere = random_in_unit_sphere();
     //     if (dot(in_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
@@ -85,6 +66,35 @@ impl Vec3 {
     //     else
     //         return -in_unit_sphere;
     // }
+
+    pub fn near_zero(&self) -> bool {
+        let eps = 1e-8;
+        f64::abs(self.x) < eps && f64::abs(self.y) < eps && f64::abs(self.z) < eps
+    }
+}
+
+pub fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = Vec3::random(-1., 1.);
+        if p.length() < 1. {
+            return p;
+        }
+    }
+}
+
+/*
+pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    let in_unit_sphere = random_in_unit_sphere();
+    if Vec3::dot(in_unit_sphere, normal) > 0. {
+        in_unit_sphere
+    } else {
+        -in_unit_sphere
+    }
+}
+*/
+
+pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+    v - n * Vec3::dot(v, n) * 2.
 }
 
 impl Display for Vec3 {

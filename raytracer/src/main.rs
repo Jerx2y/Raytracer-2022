@@ -1,5 +1,6 @@
 mod camera;
 mod hittable;
+mod material;
 mod ray;
 mod sphere;
 mod vec;
@@ -9,11 +10,12 @@ use console::style;
 use hittable::{/* HitRecord,*/ Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
+use material::{Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
-use std::{fs::File, process::exit};
-use vec::{Color, Point3, Vec3};
+use std::{fs::File, process::exit, sync::Arc};
+use vec::{Color, Point3};
 
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
@@ -53,8 +55,31 @@ fn main() {
 
     // World
     let mut world: HittableList = HittableList::new();
-    world.add(Box::new(Sphere::new(Point3::new(0., 0., -1.), 0.5)));
-    world.add(Box::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
+    let material_ground = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8)));
+    let material_right = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2)));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        material_center,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
 
     // Camera
     let cam = Camera::new(aspect_ratio);
@@ -98,8 +123,20 @@ fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
         return Color::new(0., 0., 0.);
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
-        let target = rec.p + Vec3::random_in_hemisphere(rec.normal);
-        ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5
+        //        ray scattered;
+        //        color attenuation;
+        //        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        //            return attenuation * ray_color(scattered, world, depth-1);
+        //        return color(0,0,0);
+
+        if let Some((attenuation, scattered)) = rec.mat_ptr.scatter(r, &rec) {
+            attenuation * ray_color(scattered, world, depth - 1)
+        } else {
+            Color::new(0., 0., 0.)
+        }
+
+    //        let target = rec.p + Vec3::random_in_hemisphere(rec.normal);
+    //        ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5
     } else {
         // background
         let unit_direction = r.dir.to_unit();
