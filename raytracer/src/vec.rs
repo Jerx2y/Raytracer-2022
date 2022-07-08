@@ -1,3 +1,4 @@
+use rand::Rng;
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
@@ -43,6 +44,24 @@ impl Vec3 {
 
     pub fn to_unit(self) -> Self {
         self / self.length()
+    }
+
+    pub fn random(l: f64, r: f64) -> Self {
+        let mut rng = rand::thread_rng();
+        Self {
+            x: rng.gen_range(l..r),
+            y: rng.gen_range(l..r),
+            z: rng.gen_range(l..r),
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random(-1., 1.);
+            if p.length() < 1. {
+                return p;
+            }
+        }
     }
 }
 

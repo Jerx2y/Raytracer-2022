@@ -1,25 +1,19 @@
-use std::{fs::File, process::exit};
-
-use image::{ImageBuffer, RgbImage};
-
-use console::style;
-use indicatif::{ProgressBar, ProgressStyle};
-
-mod vec;
-use rand::Rng;
-use vec::{Color, Point3 /*, Vec3*/};
-
-mod ray;
-use ray::Ray;
-
-mod hittable;
-use hittable::{/* HitRecord,*/ Hittable, HittableList};
-
-mod sphere;
-use sphere::Sphere;
-
 mod camera;
+mod hittable;
+mod ray;
+mod sphere;
+mod vec;
+
 use camera::Camera;
+use console::style;
+use hittable::{/* HitRecord,*/ Hittable, HittableList};
+use image::{ImageBuffer, RgbImage};
+use indicatif::{ProgressBar, ProgressStyle};
+use rand::Rng;
+use ray::Ray;
+use sphere::Sphere;
+use std::{fs::File, process::exit};
+use vec::{Color, Point3, Vec3};
 
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
@@ -32,6 +26,7 @@ fn main() {
     let quality = 100; // From 0 to 100
     let path = "output/output.jpg";
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     println!(
         "Image size: {}\nJPEG quality: {}",
@@ -74,7 +69,7 @@ fn main() {
                 let u = (x as f64 + rand_u) / (width - 1) as f64;
                 let v = (y as f64 + rand_v) / (height - 1) as f64;
                 let r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, &world);
+                pixel_color += ray_color(r, &world, max_depth);
             }
             let pixel = img.get_pixel_mut(x, height - y - 1);
             *pixel = image::Rgb(write_color(pixel_color, samples_per_pixel));
@@ -98,10 +93,15 @@ fn main() {
     exit(0);
 }
 
-fn ray_color(r: Ray, world: &HittableList) -> Color {
+fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
+    if depth <= 0 {
+        return Color::new(0., 0., 0.);
+    }
     if let Some(rec) = world.hit(r, 0., f64::MAX) {
-        (rec.normal + Color::new(1., 1., 1.)) * 0.5
+        let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+        ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5
     } else {
+        // background
         let unit_direction = r.dir.to_unit();
         let t = 0.5 * (unit_direction.y + 1.0);
         Color::new(1., 1., 1.) * (1. - t) + Color::new(0.5, 0.7, 1.) * t
