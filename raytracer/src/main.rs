@@ -110,9 +110,21 @@ fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
 
 fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
     [
-        ((pixel_color.x / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
-        ((pixel_color.y / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
-        ((pixel_color.z / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
+        ((pixel_color.x / samples_per_pixel as f64)
+            .sqrt()
+            .clamp(0.0, 0.999)
+            * 255.999)
+            .floor() as u8,
+        ((pixel_color.y / samples_per_pixel as f64)
+            .sqrt()
+            .clamp(0.0, 0.999)
+            * 255.999)
+            .floor() as u8,
+        ((pixel_color.z / samples_per_pixel as f64)
+            .sqrt()
+            .clamp(0.0, 0.999)
+            * 255.999)
+            .floor() as u8,
     ]
 }
 
