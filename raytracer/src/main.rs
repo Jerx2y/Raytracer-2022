@@ -97,8 +97,8 @@ fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }
-    if let Some(rec) = world.hit(r, 0., f64::MAX) {
-        let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+    if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
+        let target = rec.p + rec.normal + Vec3::random_unit_vector();
         ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5
     } else {
         // background
