@@ -6,7 +6,8 @@ use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
 
 mod vec;
-use vec::{Color, Point3, Vec3};
+use rand::Rng;
+use vec::{Color, Point3 /*, Vec3*/};
 
 mod ray;
 use ray::Ray;
@@ -17,15 +18,20 @@ use hittable::{/* HitRecord,*/ Hittable, HittableList};
 mod sphere;
 use sphere::Sphere;
 
+mod camera;
+use camera::Camera;
+
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
+    // Image
     let width = 400;
     let height = 225;
     let aspect_ratio = width as f64 / height as f64;
     let quality = 100; // From 0 to 100
     let path = "output/output.jpg";
+    let samples_per_pixel = 100;
 
     println!(
         "Image size: {}\nJPEG quality: {}",
@@ -56,27 +62,22 @@ fn main() {
     world.add(Box::new(Sphere::new(Point3::new(0., -100.5, -1.), 100.)));
 
     // Camera
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
+    let cam = Camera::new(aspect_ratio);
 
-    let origin = Point3::new(0.0, 0.0, 0.0);
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
-
+    let mut rng = rand::thread_rng();
     for y in 0..height {
         for x in 0..width {
-            let u = x as f64 / (width - 1) as f64;
-            let v = y as f64 / (height - 1) as f64;
-            let r = Ray::new(
-                origin,
-                lower_left_corner + horizontal * u + vertical * v - origin,
-            );
-            let pixel_color: Color = ray_color(r, &world);
+            let mut pixel_color = Color::new(0., 0., 0.);
+            for _i in 0..samples_per_pixel {
+                let rand_u: f64 = rng.gen();
+                let rand_v: f64 = rng.gen();
+                let u = (x as f64 + rand_u) / (width - 1) as f64;
+                let v = (y as f64 + rand_v) / (height - 1) as f64;
+                let r = cam.get_ray(u, v);
+                pixel_color += ray_color(r, &world);
+            }
             let pixel = img.get_pixel_mut(x, height - y - 1);
-            *pixel = image::Rgb(to_color256(pixel_color));
+            *pixel = image::Rgb(write_color(pixel_color, samples_per_pixel));
             progress.inc(1);
         }
     }
@@ -107,11 +108,11 @@ fn ray_color(r: Ray, world: &HittableList) -> Color {
     }
 }
 
-fn to_color256(c: Color) -> [u8; 3] {
+fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
     [
-        (c.x * 255.999).floor() as u8,
-        (c.y * 255.999).floor() as u8,
-        (c.z * 255.999).floor() as u8,
+        ((pixel_color.x / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
+        ((pixel_color.y / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
+        ((pixel_color.z / samples_per_pixel as f64).clamp(0.0, 0.999) * 255.999).floor() as u8,
     ]
 }
 
