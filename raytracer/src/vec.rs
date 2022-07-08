@@ -64,9 +64,27 @@ impl Vec3 {
         }
     }
 
+    /*
     pub fn random_unit_vector() -> Self {
         Vec3::random_in_unit_sphere().to_unit()
     }
+    */
+
+    pub fn random_in_hemisphere(normal: Vec3) -> Self {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if Vec3::dot(in_unit_sphere, normal) > 0. {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
+    }
+    // vec3 random_in_hemisphere(const vec3& normal) {
+    //     vec3 in_unit_sphere = random_in_unit_sphere();
+    //     if (dot(in_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
+    //         return in_unit_sphere;
+    //     else
+    //         return -in_unit_sphere;
+    // }
 }
 
 impl Display for Vec3 {
