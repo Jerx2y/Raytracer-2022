@@ -91,7 +91,7 @@ fn main() {
         Point3::new(-2., 2., 1.),
         Point3::new(0., 0., -1.),
         Vec3::new(0., 1., 0.),
-        90.,
+        20.,
         aspect_ratio,
     );
 
