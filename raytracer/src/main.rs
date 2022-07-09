@@ -73,6 +73,11 @@ fn main() {
     world.add(Arc::new(Sphere::new(
         Point3::new(-1.0, 0.0, -1.0),
         0.5,
+        material_left.clone(),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        -0.4,
         material_left,
     )));
     world.add(Arc::new(Sphere::new(
