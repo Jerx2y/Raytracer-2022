@@ -2,7 +2,7 @@ use super::vec::reflect;
 use crate::{
     hittable::HitRecord,
     ray::Ray,
-    vec::{random_in_unit_sphere, Color, Vec3},
+    vec::{random_in_unit_sphere, refract, Color, Vec3},
 };
 
 pub trait Material {
@@ -52,5 +52,30 @@ impl Material for Metal {
         } else {
             None
         }
+    }
+}
+
+pub struct Dielectric {
+    pub ir: f64,
+}
+
+impl Dielectric {
+    pub fn new(index_of_refraction: f64) -> Self {
+        Self {
+            ir: index_of_refraction,
+        }
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+        let refraction_ratio = if rec.front_face {
+            1. / self.ir
+        } else {
+            self.ir
+        };
+        let unit_direction = r_in.dir.to_unit();
+        let refracted = refract(unit_direction, rec.normal, refraction_ratio);
+        Some((Color::new(1., 1., 1.), Ray::new(rec.p, refracted)))
     }
 }

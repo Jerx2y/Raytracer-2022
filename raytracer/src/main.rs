@@ -10,7 +10,7 @@ use console::style;
 use hittable::{/* HitRecord,*/ Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{ProgressBar, ProgressStyle};
-use material::{Lambertian, Metal};
+use material::{Dielectric, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
@@ -56,8 +56,8 @@ fn main() {
     // World
     let mut world: HittableList = HittableList::new();
     let material_ground = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let material_left = Arc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_center = Arc::new(Dielectric::new(1.5));
+    let material_left = Arc::new(Dielectric::new(1.5));
     let material_right = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     world.add(Arc::new(Sphere::new(
@@ -123,20 +123,11 @@ fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
         return Color::new(0., 0., 0.);
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
-        //        ray scattered;
-        //        color attenuation;
-        //        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-        //            return attenuation * ray_color(scattered, world, depth-1);
-        //        return color(0,0,0);
-
         if let Some((attenuation, scattered)) = rec.mat_ptr.scatter(r, &rec) {
             attenuation * ray_color(scattered, world, depth - 1)
         } else {
             Color::new(0., 0., 0.)
         }
-
-    //        let target = rec.p + Vec3::random_in_hemisphere(rec.normal);
-    //        ray_color(Ray::new(rec.p, target - rec.p), world, depth - 1) * 0.5
     } else {
         // background
         let unit_direction = r.dir.to_unit();
@@ -164,18 +155,3 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
             .floor() as u8,
     ]
 }
-
-/*
-fn hit_sphere(center: Point3, radius: f64, r: Ray) -> f64 {
-    let oc = r.orig - center;
-    let a = Vec3::dot(r.dir, r.dir);
-    let b = 2.0 * Vec3::dot(oc, r.dir);
-    let c = Vec3::dot(oc, oc) - radius * radius;
-    let discriminant = b * b - 4. * a * c;
-    if discriminant < 0. {
-        -1.
-    } else {
-        (-b - discriminant.sqrt()) / (2. * a)
-    }
-}
-*/

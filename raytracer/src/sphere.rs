@@ -32,25 +32,25 @@ impl Hittable for Sphere {
         if discriminant < 0. {
             return None;
         }
-        let sqrtd = discriminant.sqrt();
 
-        let root = (-half_b - sqrtd) / a;
+        let sqrtd = discriminant.sqrt();
+        let mut root = (-half_b - sqrtd) / a;
         if root < t_min || t_max < root {
-            let root = (-half_b + sqrtd) / a;
+            root = (-half_b + sqrtd) / a;
             if root < t_min || t_max < root {
                 return None;
             }
         }
 
+        let outward_normal = (r.at(root) - self.center) / self.radius;
         let mut rec = HitRecord::new(
             r.at(root),
-            (r.at(root) - self.center) / self.radius,
+            outward_normal,
             root,
             false,
             self.mat_ptr.clone(),
         );
 
-        let outward_normal = (rec.p - self.center) / self.radius;
         rec.set_face_normal(r, outward_normal);
 
         Some(rec)
