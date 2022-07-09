@@ -15,7 +15,7 @@ use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
 use std::{fs::File, process::exit, sync::Arc};
-use vec::{Color, Point3};
+use vec::{Color, Point3, Vec3};
 
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
@@ -77,7 +77,7 @@ fn main() {
     )));
     world.add(Arc::new(Sphere::new(
         Point3::new(-1.0, 0.0, -1.0),
-        -0.4,
+        -0.45,
         material_left,
     )));
     world.add(Arc::new(Sphere::new(
@@ -87,7 +87,13 @@ fn main() {
     )));
 
     // Camera
-    let cam = Camera::new(aspect_ratio);
+    let cam = Camera::new(
+        Point3::new(-2., 2., 1.),
+        Point3::new(0., 0., -1.),
+        Vec3::new(0., 1., 0.),
+        90.,
+        aspect_ratio,
+    );
 
     let mut rng = rand::thread_rng();
     for y in 0..height {
