@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use super::vec::reflect;
 use crate::{
     hittable::HitRecord,
@@ -65,6 +67,12 @@ impl Dielectric {
             ir: index_of_refraction,
         }
     }
+
+    fn reflectance(cos: f64, ref_idx: f64) -> f64 {
+        let mut r0 = (1. - ref_idx) / (1. + ref_idx);
+        r0 = r0 * r0;
+        r0 + (1. - r0) * (1. - cos).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -80,24 +88,16 @@ impl Material for Dielectric {
         let sin_theta = (1. - cos_theta.powi(2)).sqrt();
 
         let cannot_refract = refraction_ratio * sin_theta > 1.;
-        let direction = if cannot_refract {
+
+        let mut rng = rand::thread_rng();
+        let random_double: f64 = rng.gen_range(0.0..1.0);
+        let direction = if cannot_refract
+            || Dielectric::reflectance(cos_theta, refraction_ratio) > random_double
+        {
             reflect(unit_direction, rec.normal)
         } else {
             refract(unit_direction, rec.normal, refraction_ratio)
         };
-
-        //            double cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
-        //            double sin_theta = sqrt(1.0 - cos_theta*cos_theta);
-        //
-        //            bool cannot_refract = refraction_ratio * sin_theta > 1.0;
-        //            vec3 direction;
-        //
-        //            if (cannot_refract)
-        //                direction = reflect(unit_direction, rec.normal);
-        //            else
-        //                direction = refract(unit_direction, rec.normal, refraction_ratio);
-        //
-        //            scattered = ray(rec.p, direction);
 
         Some((Color::new(1., 1., 1.), Ray::new(rec.p, direction)))
     }
