@@ -87,12 +87,16 @@ fn main() {
     )));
 
     // Camera
+    let lookfrom = Point3::new(3., 3., 2.);
+    let lookat = Point3::new(0., 0., -1.);
     let cam = Camera::new(
-        Point3::new(-2., 2., 1.),
-        Point3::new(0., 0., -1.),
+        lookfrom,
+        lookat,
         Vec3::new(0., 1., 0.),
         20.,
         aspect_ratio,
+        2.,
+        (lookfrom - lookat).length(),
     );
 
     let mut rng = rand::thread_rng();

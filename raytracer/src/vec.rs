@@ -91,6 +91,16 @@ pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
 }
 */
 
+pub fn random_in_unit_disk() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p = Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.);
+        if p.length() < 1. {
+            return p;
+        }
+    }
+}
+
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - n * Vec3::dot(v, n) * 2.
 }
