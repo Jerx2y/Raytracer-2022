@@ -54,49 +54,19 @@ fn main() {
     // Generate image
 
     // World
-    let mut world: HittableList = HittableList::new();
-    let material_ground = Arc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let material_center = Arc::new(Lambertian::new(Color::new(0.1, 0.2, 0.5)));
-    let material_left = Arc::new(Dielectric::new(1.5));
-    let material_right = Arc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
-
-    world.add(Arc::new(Sphere::new(
-        Point3::new(0.0, -100.5, -1.0),
-        100.0,
-        material_ground,
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point3::new(0.0, 0.0, -1.0),
-        0.5,
-        material_center,
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        0.5,
-        material_left.clone(),
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point3::new(-1.0, 0.0, -1.0),
-        -0.45,
-        material_left,
-    )));
-    world.add(Arc::new(Sphere::new(
-        Point3::new(1.0, 0.0, -1.0),
-        0.5,
-        material_right,
-    )));
+    let world = random_scene();
 
     // Camera
-    let lookfrom = Point3::new(3., 3., 2.);
-    let lookat = Point3::new(0., 0., -1.);
+    let lookfrom = Point3::new(13., 2., 3.);
+    let lookat = Point3::new(0., 0., 0.);
     let cam = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0., 1., 0.),
         20.,
         aspect_ratio,
-        2.,
-        (lookfrom - lookat).length(),
+        0.1,
+        10.,
     );
 
     let mut rng = rand::thread_rng();
@@ -169,4 +139,71 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
             * 255.999)
             .floor() as u8,
     ]
+}
+
+fn random_scene() -> HittableList {
+    let mut world = HittableList::new();
+    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.,
+        ground_material,
+    )));
+
+    let mut rng = rand::thread_rng();
+    for a in -11..=11 {
+        for b in -11..=11 {
+            let choose_mat: f64 = rng.gen();
+            let center = Point3::new(
+                a as f64 + 0.9 * rng.gen::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rng.gen::<f64>(),
+            );
+
+            if (center - Point3::new(4., 0.2, 0.)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    let albedo = Color::random(0., 1.);
+                    world.add(Arc::new(Sphere::new(
+                        center,
+                        0.2,
+                        Arc::new(Lambertian::new(albedo)),
+                    )));
+                } else if choose_mat < 0.95 {
+                    let albedo = Color::random(0.5, 1.);
+                    let fuzz = rng.gen_range(0.0..0.5);
+                    world.add(Arc::new(Sphere::new(
+                        center,
+                        0.2,
+                        Arc::new(Metal::new(albedo, fuzz)),
+                    )));
+                } else {
+                    world.add(Arc::new(Sphere::new(
+                        center,
+                        0.2,
+                        Arc::new(Dielectric::new(1.5)),
+                    )));
+                }
+            }
+        }
+    }
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 1., 0.),
+        1.,
+        Arc::new(Dielectric::new(1.5)),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(-4., 1., 0.),
+        1.,
+        Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1))),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(4., 1., 0.),
+        1.,
+        Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.)),
+    )));
+
+    world
 }
