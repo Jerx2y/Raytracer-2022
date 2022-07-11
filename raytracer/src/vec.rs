@@ -2,7 +2,7 @@ use rand::Rng;
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, /*Index, IndexMut, */ Mul, MulAssign, Neg, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 
 pub type Color = Vec3;
@@ -302,6 +302,30 @@ impl DivAssign<f64> for Vec3 {
             x: self.x / rhs,
             y: self.y / rhs,
             z: self.z / rhs,
+        }
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Try to get {}th dimension of Vec3.", index),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("Try to get {}th dimension of Vec3.", index),
         }
     }
 }

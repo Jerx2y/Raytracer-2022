@@ -3,6 +3,7 @@ use std::sync::Arc;
 use super::material::Material;
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};
+use super::aabb::AABB;
 
 pub struct HitRecord {
     pub p: Point3,
@@ -41,6 +42,7 @@ impl HitRecord {
 
 pub trait Hittable: Send + Sync {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB>;
 }
 
 #[derive(Clone)]
@@ -71,5 +73,22 @@ impl Hittable for HittableList {
             }
         }
         temp_rec
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        if self.objects.is_empty() {
+            return None;
+        }
+        let mut output_box = AABB::new(Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY), Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY));
+
+        for object in self.objects {
+            if let Some(temp_box) = object.bounding_box(time0, time1) {
+                output_box = AABB::surrounding_box(output_box, temp_box);
+            } else {
+                return None;
+            }
+        }
+
+        Some(output_box)
     }
 }
