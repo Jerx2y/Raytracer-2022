@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::vec::random_in_unit_disk;
 
 use super::ray::Ray;
@@ -13,8 +15,10 @@ pub struct Camera {
     v: Vec3,
     _w: Vec3,
     lens_radius: f64,
+    time0: f64,
+    time1: f64,
 }
-
+#[allow(clippy::too_many_arguments)]
 impl Camera {
     pub fn new(
         lookfrom: Point3,
@@ -24,6 +28,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        time0: f64,
+        time1: f64,
     ) -> Self {
         let theta = vfov.to_radians();
         let h = (theta / 2.).tan();
@@ -49,38 +55,19 @@ impl Camera {
             v,
             _w: w,
             lens_radius,
+            time0,
+            time1,
         }
-        //            auto theta = degrees_to_radians(vfov);
-        //            auto h = tan(theta/2);
-        //            auto viewport_height = 2.0 * h;
-        //            auto viewport_width = aspect_ratio * viewport_height;
-        //
-        //            auto w = unit_vector(lookfrom - lookat);
-        //            auto u = unit_vector(cross(vup, w));
-        //            auto v = cross(w, u);
-        //
-        //            origin = lookfrom;
-        //            horizontal = viewport_width * u;
-        //            vertical = viewport_height * v;
-        //            lower_left_corner = origin - horizontal/2 - vertical/2 - w;
-
-        //        let viewport_height = 2.0;
-        //        let viewport_width = aspect_ratio * viewport_height;
-        //        let focal_length = 1.0;
-        //
-        //        let origin = Point3::new(0., 0., 0.);
-        //        let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-        //        let vertical = Vec3::new(0.0, viewport_height, 0.0);
-        //        let lower_left_corner =
-        //            origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
     }
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
         let rd = random_in_unit_disk() * self.lens_radius;
         let offset = self.u * rd.x + self.v * rd.y;
+        let mut rng = rand::thread_rng();
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + self.horizontal * s + self.vertical * t - self.origin - offset,
+            rng.gen_range(self.time0..self.time1),
         )
     }
 }

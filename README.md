@@ -1,6 +1,7 @@
 # PPCA Raytracer 2022
 
-### 目前效果
+## 进度
+### Book1
 ![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
 ## 课程介绍
@@ -90,7 +91,7 @@
 
 - [x] 学习 Ray Tracing book 1，使用 Rust 语言实现该部分程序，并渲染成果图
 - [ ] 完成 Ray Tracing book 2，要求同上
-- [ ] 💠实现多线程渲染
+- [x] 💠实现多线程渲染
 - [ ] code review
   - book 1 & 2 最终成果图
   - book 1 & 2 相关实现细节
@@ -163,3 +164,5 @@
   * [yaml-rust](https://docs.rs/yaml-rust/0.4.4/yaml_rust/)
   * 通常来说，你并不需要使用到下面这个序列化/反序列化的包。
   * [serde](https://serde.rs)
+
+![banner](https://user-images.githubusercontent.com/4198311/89027545-461dd180-d35d-11ea-9972-7bf1b07f942d.png)

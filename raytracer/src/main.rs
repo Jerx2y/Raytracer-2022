@@ -13,7 +13,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
-use sphere::Sphere;
+use sphere::{MovingSphere, Sphere};
 use std::{
     fs::File,
     process::exit,
@@ -32,7 +32,7 @@ fn main() {
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
     let path = "output/output.jpg";
-    const SAMPLES_PER_PIXEL: i32 = 500;
+    const SAMPLES_PER_PIXEL: i32 = 100;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -54,6 +54,8 @@ fn main() {
         ASPECT_RATIO,
         0.1,
         10.,
+        0.,
+        1.,
     );
 
     // Progress bar
@@ -226,10 +228,14 @@ fn random_scene() -> HittableList {
             );
 
             if (center - Point3::new(4., 0.2, 0.)).length() > 0.9 {
-                if choose_mat < 0.8 {
+                if choose_mat < 0.80 {
                     let albedo = Color::random(0., 1.);
-                    world.add(Arc::new(Sphere::new(
+                    let center2 = center + Vec3::new(0., rng.gen_range(0.0..0.5), 0.);
+                    world.add(Arc::new(MovingSphere::new(
                         center,
+                        center2,
+                        0.0,
+                        1.0,
                         0.2,
                         Arc::new(Lambertian::new(albedo)),
                     )));
