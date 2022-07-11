@@ -39,10 +39,11 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
+#[derive(Clone)]
 pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>,
 }

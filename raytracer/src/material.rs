@@ -7,7 +7,7 @@ use crate::{
     vec::{random_in_unit_sphere, refract, Color, Vec3},
 };
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
 }
 

@@ -9,12 +9,17 @@ use camera::Camera;
 use console::style;
 use hittable::{/* HitRecord,*/ Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
 use sphere::Sphere;
-use std::{fs::File, process::exit, sync::Arc};
+use std::{
+    fs::File,
+    process::exit,
+    sync::{mpsc, Arc},
+    thread,
+};
 use vec::{Color, Point3, Vec3};
 
 fn main() {
@@ -22,39 +27,21 @@ fn main() {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
     // Image
-    let width = 400;
-    let height = 225;
-    let aspect_ratio = width as f64 / height as f64;
-    let quality = 100; // From 0 to 100
+    const IMAGE_WIDTH: u32 = 400;
+    const IMAGE_HEIGHT: u32 = 225;
+    const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
+    const IMAGE_QUALITY: u8 = 100; // From 0 to 100
     let path = "output/output.jpg";
-    let samples_per_pixel = 100;
-    let max_depth = 50;
+    const SAMPLES_PER_PIXEL: i32 = 500;
+    const MAX_DEPTH: i32 = 50;
+    const THREAD_NUMBER: u32 = 8;
+    const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
     println!(
-        "Image size: {}\nJPEG quality: {}",
-        style(width.to_string() + &"x".to_string() + &height.to_string()).yellow(),
-        style(quality.to_string()).yellow(),
+        "Image size: {}\nJPEG IMAGE_QUALITY: {}",
+        style(IMAGE_WIDTH.to_string() + &"x".to_string() + &IMAGE_HEIGHT.to_string()).yellow(),
+        style(IMAGE_QUALITY.to_string()).yellow(),
     );
-
-    // Create image data
-    let mut img: RgbImage = ImageBuffer::new(width, height);
-    // Progress bar UI powered by library `indicatif`
-    // Get environment variable CI, which is true for GitHub Action
-    let progress = if option_env!("CI").unwrap_or_default() == "true" {
-        ProgressBar::hidden()
-    } else {
-        ProgressBar::new((height * width) as u64)
-    };
-    progress.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
-        .progress_chars("#>-"));
-
-    // ===================== prework =====================
-
-    // Generate image
-
-    // World
-    let world = random_scene();
 
     // Camera
     let lookfrom = Point3::new(13., 2., 3.);
@@ -64,37 +51,115 @@ fn main() {
         lookat,
         Vec3::new(0., 1., 0.),
         20.,
-        aspect_ratio,
+        ASPECT_RATIO,
         0.1,
         10.,
     );
 
-    let mut rng = rand::thread_rng();
-    for y in 0..height {
-        for x in 0..width {
-            let mut pixel_color = Color::new(0., 0., 0.);
-            for _i in 0..samples_per_pixel {
-                let rand_u: f64 = rng.gen();
-                let rand_v: f64 = rng.gen();
-                let u = (x as f64 + rand_u) / (width - 1) as f64;
-                let v = (y as f64 + rand_v) / (height - 1) as f64;
-                let r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, &world, max_depth);
+    // Progress bar
+    let multiprogress = Arc::new(MultiProgress::new());
+    multiprogress.set_move_cursor(true);
+
+    // Thread
+    let mut output_pixel_color = Vec::<Color>::new();
+    let mut thread_pool = Vec::<_>::new();
+
+    // World
+    let main_world = random_scene();
+
+    for thread_id in 0..THREAD_NUMBER {
+        // line
+        let line_beg = thread_id * SECTION_LINE_NUM;
+        let mut line_end = line_beg + SECTION_LINE_NUM;
+        if thread_id == THREAD_NUMBER - 1 {
+            line_end = IMAGE_HEIGHT;
+        }
+
+        // world
+        let world = main_world.clone();
+
+        //progress
+        let mp = multiprogress.clone();
+        let progress_bar = mp.add(ProgressBar::new((line_end - line_beg) as u64));
+        progress_bar.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] [{pos}/{len}] ({eta})")
+        .progress_chars("#>-"));
+
+        // thread code
+        let (tx, rx) = mpsc::channel();
+
+        thread_pool.push((
+            thread::spawn(move || {
+                let mut progress = 0;
+                progress_bar.set_position(progress);
+
+                let mut section_pixel_color = Vec::<Color>::new();
+
+                let mut rng = rand::thread_rng();
+                for y in line_beg..line_end {
+                    for x in 0..IMAGE_WIDTH {
+                        let mut pixel_color = Color::new(0., 0., 0.);
+                        for _i in 0..SAMPLES_PER_PIXEL {
+                            let rand_u: f64 = rng.gen();
+                            let rand_v: f64 = rng.gen();
+                            let u = (x as f64 + rand_u) / (IMAGE_WIDTH - 1) as f64;
+                            let v = (y as f64 + rand_v) / (IMAGE_HEIGHT - 1) as f64;
+                            let r = cam.get_ray(u, v);
+                            pixel_color += ray_color(r, &world, MAX_DEPTH);
+                        }
+                        section_pixel_color.push(pixel_color);
+                    }
+                    progress += 1;
+                    progress_bar.set_position(progress);
+                }
+                tx.send(section_pixel_color).unwrap();
+                progress_bar.finish_with_message("Finished.");
+            }),
+            rx,
+        ));
+    }
+    multiprogress.join().unwrap();
+
+    let mut thread_finish = true;
+    for _thread_id in 0..THREAD_NUMBER {
+        let thread = thread_pool.remove(0);
+        match thread.0.join() {
+            Ok(_) => {
+                let mut received = thread.1.recv().unwrap();
+                output_pixel_color.append(&mut received);
             }
-            let pixel = img.get_pixel_mut(x, height - y - 1);
-            *pixel = image::Rgb(write_color(pixel_color, samples_per_pixel));
-            progress.inc(1);
+            Err(_) => {
+                thread_finish = false;
+            }
+        }
+    }
+
+    if !thread_finish {
+        println!("run time error");
+        exit(0);
+    }
+
+    let mut img: RgbImage = ImageBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+    let mut pixel_id = 0;
+    for y in 0..IMAGE_HEIGHT {
+        for x in 0..IMAGE_WIDTH {
+            let pixel_color = output_pixel_color[pixel_id];
+            let pixel = img.get_pixel_mut(x, IMAGE_HEIGHT - y - 1);
+            *pixel = image::Rgb(write_color(pixel_color, SAMPLES_PER_PIXEL));
+            pixel_id += 1;
         }
     }
 
     // ==================== afterwork ====================
 
-    progress.finish();
     // Output image to file
     println!("Ouput image as \"{}\"", style(path).yellow());
     let output_image = image::DynamicImage::ImageRgb8(img);
     let mut output_file = File::create(path).unwrap();
-    match output_image.write_to(&mut output_file, image::ImageOutputFormat::Jpeg(quality)) {
+    match output_image.write_to(
+        &mut output_file,
+        image::ImageOutputFormat::Jpeg(IMAGE_QUALITY),
+    ) {
         Ok(_) => {}
         // Err(_) => panic!("Outputting image fails."),
         Err(_) => println!("{}", style("Outputting image fails.").red()),
