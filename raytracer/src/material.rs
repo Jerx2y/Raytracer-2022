@@ -19,6 +19,7 @@ pub struct Lambertian {
 }
 
 impl Lambertian {
+    #[allow(dead_code)]
     pub fn new(a: Color) -> Self {
         Self {
             albedo: Arc::new(SolidColor::new(a)),
@@ -48,6 +49,7 @@ pub struct Metal {
 }
 
 impl Metal {
+    #[allow(dead_code)]
     pub fn new(a: Color, f: f64) -> Self {
         Self {
             albedo: a,
@@ -77,6 +79,7 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
+    #[allow(dead_code)]
     pub fn new(index_of_refraction: f64) -> Self {
         Self {
             ir: index_of_refraction,

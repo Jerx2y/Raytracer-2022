@@ -13,10 +13,10 @@ use console::style;
 use hittable::{Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::{/*Dielectric, */Lambertian, /*Metal*/};
+use material::Lambertian;
 use rand::Rng;
 use ray::Ray;
-use sphere::{/*MovingSphere, */Sphere};
+use sphere::Sphere;
 use std::{
     fs::File,
     process::exit,
@@ -318,13 +318,13 @@ fn two_spheres() -> HittableList {
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -10., 0.),
         10.,
-        Arc::new(Lambertian::new_arc(checker.clone()))
+        Arc::new(Lambertian::new_arc(checker.clone())),
     )));
 
     world.add(Arc::new(Sphere::new(
         Point3::new(0., 10., 0.),
         10.,
-        Arc::new(Lambertian::new_arc(checker))
+        Arc::new(Lambertian::new_arc(checker)),
     )));
 
     world
