@@ -9,7 +9,7 @@ mod bvh;
 
 use camera::Camera;
 use console::style;
-use hittable::{/* HitRecord,*/ Hittable, HittableList};
+use hittable::{Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use material::{Dielectric, Lambertian, Metal};
@@ -23,6 +23,8 @@ use std::{
     thread,
 };
 use vec::{Color, Point3, Vec3};
+
+use crate::bvh::BvhNode;
 
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
@@ -69,7 +71,8 @@ fn main() {
     let mut thread_pool = Vec::<_>::new();
 
     // World
-    let main_world = random_scene();
+    // let main_world = random_scene();
+    let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
 
     for thread_id in 0..THREAD_NUMBER {
         // line
@@ -172,7 +175,7 @@ fn main() {
     exit(0);
 }
 
-fn ray_color(r: Ray, world: &HittableList, depth: i32) -> Color {
+fn ray_color(r: Ray, world: &BvhNode, depth: i32) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }

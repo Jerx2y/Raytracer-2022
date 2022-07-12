@@ -4,6 +4,9 @@
 ### Book1
 ![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
+### Book2
+![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+
 ## 课程介绍
 
 - 本项目为 2021-2022 学年暑期小学期课程

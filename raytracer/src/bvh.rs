@@ -6,6 +6,7 @@ use rand::Rng;
 use crate::hittable::{Hittable, HittableList};
 use super::aabb::AABB;
 
+#[derive(Clone)]
 pub struct BvhNode {
     aabbox: AABB,
     left: Option<Arc<dyn Hittable>>,
@@ -36,6 +37,7 @@ impl BvhNode {
     pub fn new_list(list: &HittableList, time0: f64, time1: f64) -> Self {
         BvhNode::new_vec(list.objects.clone(), time0, time1)
     }
+#[allow(unused_assignments)]
     pub fn new_vec(mut objects: Vec<Arc<dyn Hittable>>, time0: f64, time1: f64) -> Self {
         let axis: usize = rand::thread_rng().gen_range(0..3);
 
@@ -106,7 +108,7 @@ impl Hittable for BvhNode {
             }
         }
     }
-    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+    fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         Some(self.aabbox)
     }
 }
