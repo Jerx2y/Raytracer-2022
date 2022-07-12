@@ -5,61 +5,29 @@
 ![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
 ### Book2
-1  Overview
-
-2  Motion Blur
-
-3  Bounding Volume Hierarchies
-
-  3.1  The Key Idea
-  3.2  Hierarchies of Bounding Volumes
-  3.3  Axis-Aligned Bounding Boxes (AABBs)
-  3.4  Ray Intersection with an AABB
-  3.5  An Optimized AABB Hit Method
-  3.6  Constructing Bounding Boxes for Hittables
-  3.7  Creating Bounding Boxes of Lists of Objects
-  3.8  The BVH Node Class
-  3.9  Splitting BVH Volumes
-  3.10  The Box Comparison Functions
-4  Solid Textures
-
-  4.1  The First Texture Class: Constant Texture
-  4.2  Texture Coordinates for Spheres
-  4.3  A Checker Texture
-  4.4  Rendering a Scene with a Checkered Texture
-5  Perlin Noise
-
-  5.1  Using Blocks of Random Numbers
-  5.2  Smoothing out the Result
-  5.3  Improvement with Hermitian Smoothing
-  5.4  Tweaking The Frequency
-  5.5  Using Random Vectors on the Lattice Points
-  5.6  Introducing Turbulence
-  5.7  Adjusting the Phase
-6  Image Texture Mapping
-
-  6.1  Storing Texture Image Data
-  6.2  Using an Image Texture
-7  Rectangles and Lights
-
-  7.1  Emissive Materials
-  7.2  Adding Background Color to the Ray Color Function
-  7.3  Creating Rectangle Objects
-  7.4  Turning Objects into Lights
-  7.5  More Axis-Aligned Rectangles
-  7.6  Creating an Empty “Cornell Box”
-8  Instances
-
-  8.1  Instance Translation
-  8.2  Instance Rotation
-9  Volumes
-
-  9.1  Constant Density Mediums
-  9.2  Rendering a Cornell Box with Smoke and Fog Boxes
-10  A Scene Testing All New Features
-
-
 ![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+
+[x] 1  Overview
+
+[x] 2  Motion Blur
+
+[x] 3  Bounding Volume Hierarchies
+
+[ ] 4  Solid Textures
+
+[ ] 5  Perlin Noise
+
+[ ] 6  Image Texture Mapping
+
+[ ] 7  Rectangles and Lights
+
+[ ] 8  Instances
+
+[ ] 9  Volumes
+
+[ ] 10  A Scene Testing All New Features
+
+
 
 ## 课程介绍
 
