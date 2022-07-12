@@ -81,7 +81,7 @@ impl Hittable for HittableList {
         }
         let mut output_box = AABB::new(Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY), Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY));
 
-        for object in self.objects {
+        for object in &self.objects {
             if let Some(temp_box) = object.bounding_box(time0, time1) {
                 output_box = AABB::surrounding_box(output_box, temp_box);
             } else {

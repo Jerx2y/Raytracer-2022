@@ -4,6 +4,8 @@ mod material;
 mod ray;
 mod sphere;
 mod vec;
+mod aabb;
+mod bvh;
 
 use camera::Camera;
 use console::style;

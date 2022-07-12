@@ -1,7 +1,10 @@
+use super::vec::Point3;
+use super::ray::Ray;
 
+#[derive(Clone, Copy)]
 pub struct AABB {
-    min: Point3,
-    max: Point3,
+    pub min: Point3,
+    pub max: Point3,
 }
 
 impl AABB {
@@ -12,13 +15,15 @@ impl AABB {
         }
     }
 
-    pub fn hit(r: Ray, t_min: f64, t_max: f64) -> bool {
+    pub fn hit(&self, r: Ray, tmin: f64, tmax: f64) -> bool {
+        let mut t_min = tmin;
+        let mut t_max = tmax;
         for i in 0..3 {
-            let invD = 1. / r.dir[i];
-            let mut t0 = (min[i] - r.orig[i]) * invD;
-            let mut t1 = (max[i] - r.orig[i]) * invD;
-            if invD < 0. {
-                t0.swap(t1);
+            let inv_d = 1. / r.dir[i];
+            let mut t0 = (self.min[i] - r.orig[i]) * inv_d;
+            let mut t1 = (self.max[i] - r.orig[i]) * inv_d;
+            if inv_d < 0. {
+                std::mem::swap(&mut t0, &mut t1);
             }
             t_min = if t0 > t_min { t0 } else { t_min };
             t_max = if t1 < t_max { t1 } else { t_max };
