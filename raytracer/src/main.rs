@@ -33,12 +33,12 @@ fn main() {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
     // Image
-    const IMAGE_WIDTH: u32 = 400;
-    const IMAGE_HEIGHT: u32 = 225;
+    const IMAGE_WIDTH: u32 = 1920;
+    const IMAGE_HEIGHT: u32 = 1080;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
     let path = "output/output.jpg";
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 1500;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -218,22 +218,22 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let checker = Arc::new(CheckerTexture::new(
-        Color::new(0.2, 0.3, 0.1),
-        Color::new(0.9, 0.9, 0.9),
-    ));
-    world.add(Arc::new(Sphere::new(
-        Point3::new(0., -1000., 0.),
-        1000.,
-        Arc::new(Lambertian::new_arc(checker)),
-    )));
+    //let checker = Arc::new(CheckerTexture::new(
+    //    Color::new(0.2, 0.3, 0.1),
+    //    Color::new(0.9, 0.9, 0.9),
+    //));
+    //world.add(Arc::new(Sphere::new(
+    //    Point3::new(0., -1000., 0.),
+    //    1000.,
+    //    Arc::new(Lambertian::new_arc(checker)),
+    //)));
 
-    //    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    //    world.add(Arc::new(Sphere::new(
-    //        Point3::new(0., -1000., 0.),
-    //        1000.,
-    //        ground_material,
-    //    )));
+        let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+        world.add(Arc::new(Sphere::new(
+            Point3::new(0., -1000., 0.),
+            1000.,
+            ground_material,
+        )));
 
     let mut rng = rand::thread_rng();
     for a in -11..=11 {
