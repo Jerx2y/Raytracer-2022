@@ -85,6 +85,7 @@ pub struct MovingSphere {
     pub mat_ptr: Arc<dyn Material>,
 }
 impl MovingSphere {
+    #[allow(dead_code)]
     pub fn new(
         center0: Point3,
         center1: Point3,

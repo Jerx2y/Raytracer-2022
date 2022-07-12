@@ -13,10 +13,10 @@ use console::style;
 use hittable::{Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::{Dielectric, Lambertian, Metal};
+use material::{/*Dielectric, */Lambertian, /*Metal*/};
 use rand::Rng;
 use ray::Ray;
-use sphere::{MovingSphere, Sphere};
+use sphere::{/*MovingSphere, */Sphere};
 use std::{
     fs::File,
     process::exit,
@@ -33,15 +33,24 @@ fn main() {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
     // Image
-    const IMAGE_WIDTH: u32 = 1920;
-    const IMAGE_HEIGHT: u32 = 1080;
+    let path = "output/output.jpg";
+    const IMAGE_WIDTH: u32 = 400;
+    const IMAGE_HEIGHT: u32 = 225;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    let path = "output/output.jpg";
-    const SAMPLES_PER_PIXEL: i32 = 1500;
+    const SAMPLES_PER_PIXEL: i32 = 100;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
+
+    let vup = Vec3::new(0., 1., 0.);
+    let vfov = 20.;
+    let aperture = 0.1;
+    let focus_dist = 10.;
+    let time0 = 0.;
+    let time1 = 1.;
+    let lookfrom = Point3::new(13., 2., 3.);
+    let lookat = Point3::new(0., 0., 0.);
 
     println!(
         "Image size: {}\nJPEG IMAGE_QUALITY: {}",
@@ -49,19 +58,22 @@ fn main() {
         style(IMAGE_QUALITY.to_string()).yellow(),
     );
 
+    // World
+    // let main_world = random_scene();
+    // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
+    let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
+
     // Camera
-    let lookfrom = Point3::new(13., 2., 3.);
-    let lookat = Point3::new(0., 0., 0.);
     let cam = Camera::new(
         lookfrom,
         lookat,
-        Vec3::new(0., 1., 0.),
-        20.,
+        vup,
+        vfov,
         ASPECT_RATIO,
-        0.1,
-        10.,
-        0.,
-        1.,
+        aperture,
+        focus_dist,
+        time0,
+        time1,
     );
 
     // Progress bar
@@ -71,10 +83,6 @@ fn main() {
     // Thread
     let mut output_pixel_color = Vec::<Color>::new();
     let mut thread_pool = Vec::<_>::new();
-
-    // World
-    // let main_world = random_scene();
-    let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
 
     for thread_id in 0..THREAD_NUMBER {
         // line
@@ -215,25 +223,26 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
     ]
 }
 
+/*
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    //let checker = Arc::new(CheckerTexture::new(
-    //    Color::new(0.2, 0.3, 0.1),
-    //    Color::new(0.9, 0.9, 0.9),
-    //));
-    //world.add(Arc::new(Sphere::new(
-    //    Point3::new(0., -1000., 0.),
-    //    1000.,
-    //    Arc::new(Lambertian::new_arc(checker)),
-    //)));
+    let checker = Arc::new(CheckerTexture::new(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.,
+        Arc::new(Lambertian::new_arc(checker)),
+    )));
 
-        let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-        world.add(Arc::new(Sphere::new(
-            Point3::new(0., -1000., 0.),
-            1000.,
-            ground_material,
-        )));
+    //    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    //    world.add(Arc::new(Sphere::new(
+    //        Point3::new(0., -1000., 0.),
+    //        1000.,
+    //        ground_material,
+    //    )));
 
     let mut rng = rand::thread_rng();
     for a in -11..=11 {
@@ -292,6 +301,30 @@ fn random_scene() -> HittableList {
         Point3::new(4., 1., 0.),
         1.,
         Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.)),
+    )));
+
+    world
+}
+*/
+
+fn two_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let checker = Arc::new(CheckerTexture::new(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -10., 0.),
+        10.,
+        Arc::new(Lambertian::new_arc(checker.clone()))
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 10., 0.),
+        10.,
+        Arc::new(Lambertian::new_arc(checker))
     )));
 
     world

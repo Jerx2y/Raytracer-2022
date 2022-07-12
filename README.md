@@ -14,7 +14,7 @@
 
 - [x] 3  Bounding Volume Hierarchies
 
-- [ ] 4  Solid Textures
+- [x] 4  Solid Textures
 
 - [ ] 5  Perlin Noise
 
