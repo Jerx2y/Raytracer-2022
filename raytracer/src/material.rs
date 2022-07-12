@@ -1,9 +1,12 @@
+use std::sync::Arc;
+
 use rand::Rng;
 
 use super::vec::reflect;
 use crate::{
     hittable::HitRecord,
     ray::Ray,
+    texture::{SolidColor, Texture},
     vec::{random_in_unit_sphere, refract, Color, Vec3},
 };
 
@@ -12,12 +15,17 @@ pub trait Material: Send + Sync {
 }
 
 pub struct Lambertian {
-    albedo: Color,
+    albedo: Arc<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(a: Color) -> Self {
-        Self { albedo: a }
+        Self {
+            albedo: Arc::new(SolidColor::new(a)),
+        }
+    }
+    pub fn new_arc(albedo: Arc<dyn Texture>) -> Self {
+        Self { albedo }
     }
 }
 
@@ -27,7 +35,10 @@ impl Material for Lambertian {
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal;
         }
-        Some((self.albedo, Ray::new(rec.p, scatter_direction, r_in.tm)))
+        Some((
+            self.albedo.value(rec.u, rec.v, rec.p),
+            Ray::new(rec.p, scatter_direction, r_in.tm),
+        ))
     }
 }
 

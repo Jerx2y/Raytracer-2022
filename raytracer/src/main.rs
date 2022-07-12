@@ -1,11 +1,12 @@
+mod aabb;
+mod bvh;
 mod camera;
 mod hittable;
 mod material;
 mod ray;
 mod sphere;
+mod texture;
 mod vec;
-mod aabb;
-mod bvh;
 
 use camera::Camera;
 use console::style;
@@ -22,6 +23,7 @@ use std::{
     sync::{mpsc, Arc},
     thread,
 };
+use texture::CheckerTexture;
 use vec::{Color, Point3, Vec3};
 
 use crate::bvh::BvhNode;
@@ -215,12 +217,23 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
-    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+
+    let checker = Arc::new(CheckerTexture::new(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        ground_material,
+        Arc::new(Lambertian::new_arc(checker)),
     )));
+
+    //    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    //    world.add(Arc::new(Sphere::new(
+    //        Point3::new(0., -1000., 0.),
+    //        1000.,
+    //        ground_material,
+    //    )));
 
     let mut rng = rand::thread_rng();
     for a in -11..=11 {

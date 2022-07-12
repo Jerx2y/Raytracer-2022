@@ -1,10 +1,11 @@
+use std::f64::consts::PI;
 use std::sync::Arc;
 
+use super::aabb::AABB;
 use super::hittable::{HitRecord, Hittable};
 use super::material::Material;
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};
-use super::aabb::AABB;
 
 pub struct Sphere {
     pub center: Point3,
@@ -20,9 +21,16 @@ impl Sphere {
             mat_ptr,
         }
     }
+
+    fn get_sphere_uv(&self, p: Point3) -> (f64, f64) {
+        let theta = (-p.y).acos();
+        let phi = f64::atan2(-p.z, p.x) + PI;
+        (phi / (2. * PI), theta / PI)
+    }
 }
 
 impl Hittable for Sphere {
+    #[allow(clippy::many_single_char_names)]
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.orig - self.center;
         let a = r.dir.length_sqr();
@@ -44,10 +52,13 @@ impl Hittable for Sphere {
         }
 
         let outward_normal = (r.at(root) - self.center) / self.radius;
+        let (u, v) = self.get_sphere_uv(outward_normal);
         let mut rec = HitRecord::new(
             r.at(root),
             outward_normal,
             root,
+            u,
+            v,
             false,
             self.mat_ptr.clone(),
         );
@@ -96,9 +107,16 @@ impl MovingSphere {
         self.center0
             + (self.center1 - self.center0) * ((time - self.time0) / (self.time1 - self.time0))
     }
+
+    fn get_sphere_uv(&self, p: Point3) -> (f64, f64) {
+        let theta = (-p.y).acos();
+        let phi = f64::atan2(-p.z, p.x) + PI;
+        (phi / (2. * PI), theta / PI)
+    }
 }
 
 impl Hittable for MovingSphere {
+    #[allow(clippy::many_single_char_names)]
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.orig - self.center(r.tm);
         let a = r.dir.length_sqr();
@@ -120,10 +138,13 @@ impl Hittable for MovingSphere {
         }
 
         let outward_normal = (r.at(root) - self.center(r.tm)) / self.radius;
+        let (u, v) = self.get_sphere_uv(outward_normal);
         let mut rec = HitRecord::new(
             r.at(root),
             outward_normal,
             root,
+            u,
+            v,
             false,
             self.mat_ptr.clone(),
         );

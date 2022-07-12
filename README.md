@@ -2,32 +2,35 @@
 
 ## 进度
 ### Book1
+
+#### Final Scene
 ![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
 ### Book2
+
+- [x] 1  Overview
+
+- [x] 2  Motion Blur
+
+- [x] 3  Bounding Volume Hierarchies
+
+- [ ] 4  Solid Textures
+
+- [ ] 5  Perlin Noise
+
+- [ ] 6  Image Texture Mapping
+
+- [ ] 7  Rectangles and Lights
+
+- [ ] 8  Instances
+
+- [ ] 9  Volumes
+
+- [ ] 10  A Scene Testing All New Features
+
+#### scene
+
 ![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
-
-[x] 1  Overview
-
-[x] 2  Motion Blur
-
-[x] 3  Bounding Volume Hierarchies
-
-[ ] 4  Solid Textures
-
-[ ] 5  Perlin Noise
-
-[ ] 6  Image Texture Mapping
-
-[ ] 7  Rectangles and Lights
-
-[ ] 8  Instances
-
-[ ] 9  Volumes
-
-[ ] 10  A Scene Testing All New Features
-
-
 
 ## 课程介绍
 

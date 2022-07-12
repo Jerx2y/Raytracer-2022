@@ -1,5 +1,5 @@
-use super::vec::Point3;
 use super::ray::Ray;
+use super::vec::Point3;
 
 #[derive(Clone, Copy)]
 pub struct AABB {
@@ -9,10 +9,7 @@ pub struct AABB {
 
 impl AABB {
     pub fn new(min: Point3, max: Point3) -> Self {
-        Self {
-            min,
-            max,
-        }
+        Self { min, max }
     }
 
     pub fn hit(&self, r: Ray, tmin: f64, tmax: f64) -> bool {
@@ -48,4 +45,3 @@ impl AABB {
         AABB::new(small, large)
     }
 }
-

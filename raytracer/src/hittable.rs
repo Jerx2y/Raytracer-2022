@@ -1,14 +1,16 @@
 use std::sync::Arc;
 
+use super::aabb::AABB;
 use super::material::Material;
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};
-use super::aabb::AABB;
 
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
     pub mat_ptr: Arc<dyn Material>,
 }
@@ -18,6 +20,8 @@ impl HitRecord {
         p: Point3,
         normal: Vec3,
         t: f64,
+        u: f64,
+        v: f64,
         front_face: bool,
         mat_ptr: Arc<dyn Material>,
     ) -> Self {
@@ -25,6 +29,8 @@ impl HitRecord {
             p,
             normal,
             t,
+            u,
+            v,
             front_face,
             mat_ptr,
         }
@@ -79,7 +85,10 @@ impl Hittable for HittableList {
         if self.objects.is_empty() {
             return None;
         }
-        let mut output_box = AABB::new(Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY), Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY));
+        let mut output_box = AABB::new(
+            Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY),
+            Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY),
+        );
 
         for object in &self.objects {
             if let Some(temp_box) = object.bounding_box(time0, time1) {

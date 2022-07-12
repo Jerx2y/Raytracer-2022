@@ -1,10 +1,10 @@
-use std::{cmp::Ordering};
+use std::cmp::Ordering;
 use std::sync::Arc;
 
 use rand::Rng;
 
-use crate::hittable::{Hittable, HittableList};
 use super::aabb::AABB;
+use crate::hittable::{Hittable, HittableList};
 
 #[derive(Clone)]
 pub struct BvhNode {
@@ -37,7 +37,7 @@ impl BvhNode {
     pub fn new_list(list: &HittableList, time0: f64, time1: f64) -> Self {
         BvhNode::new_vec(list.objects.clone(), time0, time1)
     }
-#[allow(unused_assignments)]
+    #[allow(unused_assignments)]
     pub fn new_vec(mut objects: Vec<Arc<dyn Hittable>>, time0: f64, time1: f64) -> Self {
         let axis: usize = rand::thread_rng().gen_range(0..3);
 
@@ -47,7 +47,8 @@ impl BvhNode {
 
         if objects_span == 0 {
             panic!("BvhNode::new_vec: Get empty vec");
-        } if objects_span == 1 {
+        }
+        if objects_span == 1 {
             let obj0 = objects.pop().unwrap();
             left = Some(obj0.clone());
             right = Some(obj0);
@@ -84,13 +85,17 @@ impl BvhNode {
         } else {
             panic!("BvhNode::new_vec: No bounding box in bvh_node constructor.");
         }
-
-
     }
 }
 
 impl Hittable for BvhNode {
-    fn hit(&self, r: crate::ray::Ray, t_min: f64, t_max: f64) -> Option<crate::hittable::HitRecord> {
+    #[allow(clippy::manual_map)]
+    fn hit(
+        &self,
+        r: crate::ray::Ray,
+        t_min: f64,
+        t_max: f64,
+    ) -> Option<crate::hittable::HitRecord> {
         if !self.aabbox.hit(r, t_min, t_max) {
             return None;
         }
@@ -100,12 +105,10 @@ impl Hittable for BvhNode {
             } else {
                 Some(recl)
             }
+        } else if let Some(recr) = self.right.as_ref().unwrap().hit(r, t_min, t_max) {
+            Some(recr)
         } else {
-            if let Some(recr) = self.right.as_ref().unwrap().hit(r, t_min, t_max) {
-                Some(recr)
-            } else {
-                None
-            }
+            None
         }
     }
     fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
