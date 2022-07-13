@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use super::perlin::Perlin;
 use super::vec::{Color, Point3};
 
 pub trait Texture: Send + Sync {
@@ -28,6 +29,7 @@ pub struct CheckerTexture {
 }
 
 impl CheckerTexture {
+    #[allow(dead_code)]
     pub fn new(c1: Color, c2: Color) -> Self {
         Self {
             odd: Arc::new(SolidColor::new(c1)),
@@ -44,5 +46,22 @@ impl Texture for CheckerTexture {
         } else {
             self.even.value(u, v, p)
         }
+    }
+}
+
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+
+impl NoiseTexture {
+    pub fn new() -> Self {
+        let noise = Perlin::new();
+        Self { noise }
+    }
+}
+
+impl Texture for NoiseTexture {
+    fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
+        Color::new(1., 1., 1.) * self.noise.noise(p)
     }
 }

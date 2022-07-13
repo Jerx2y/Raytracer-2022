@@ -3,6 +3,7 @@ mod bvh;
 mod camera;
 mod hittable;
 mod material;
+mod perlin;
 mod ray;
 mod sphere;
 mod texture;
@@ -13,17 +14,17 @@ use console::style;
 use hittable::{Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::Lambertian;
+use material::{Dielectric, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
-use sphere::Sphere;
+use sphere::{MovingSphere, Sphere};
 use std::{
     fs::File,
     process::exit,
     sync::{mpsc, Arc},
     thread,
 };
-use texture::CheckerTexture;
+use texture::{CheckerTexture, NoiseTexture};
 use vec::{Color, Point3, Vec3};
 
 use crate::bvh::BvhNode;
@@ -61,7 +62,8 @@ fn main() {
     // World
     // let main_world = random_scene();
     // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
-    let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
+    // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
+    let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -223,7 +225,7 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
     ]
 }
 
-/*
+#[allow(dead_code)]
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
 
@@ -305,8 +307,8 @@ fn random_scene() -> HittableList {
 
     world
 }
-*/
 
+#[allow(dead_code)]
 fn two_spheres() -> HittableList {
     let mut world = HittableList::new();
 
@@ -325,6 +327,24 @@ fn two_spheres() -> HittableList {
         Point3::new(0., 10., 0.),
         10.,
         Arc::new(Lambertian::new_arc(checker)),
+    )));
+
+    world
+}
+
+fn two_perlin_spheres() -> HittableList {
+    let mut world = HittableList::new();
+    let pertext = Arc::new(NoiseTexture::new());
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.,
+        Arc::new(Lambertian::new_arc(pertext.clone())),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 2., 0.),
+        2.,
+        Arc::new(Lambertian::new_arc(pertext)),
     )));
 
     world
