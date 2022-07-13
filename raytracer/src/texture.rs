@@ -57,15 +57,12 @@ pub struct NoiseTexture {
 impl NoiseTexture {
     pub fn new(scale: f64) -> Self {
         let noise = Perlin::new();
-        Self {
-            noise,
-            scale,
-        }
+        Self { noise, scale }
     }
 }
 
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
-        Color::new(1., 1., 1.) * self.noise.noise(p * self.scale)
+        Color::new(1., 1., 1.) * 0.5 * (1.0 + self.noise.noise(p * self.scale))
     }
 }
