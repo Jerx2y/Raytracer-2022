@@ -334,7 +334,7 @@ fn two_spheres() -> HittableList {
 
 fn two_perlin_spheres() -> HittableList {
     let mut world = HittableList::new();
-    let pertext = Arc::new(NoiseTexture::new());
+    let pertext = Arc::new(NoiseTexture::new(4.));
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
