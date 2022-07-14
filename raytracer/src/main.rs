@@ -1,4 +1,5 @@
 mod aabb;
+mod aarect;
 mod bvh;
 mod camera;
 mod hittable;
@@ -9,12 +10,13 @@ mod sphere;
 mod texture;
 mod vec;
 
+use aarect::XYRect;
 use camera::Camera;
 use console::style;
 use hittable::{Hittable, HittableList};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::{Dielectric, Lambertian, Metal};
+use material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use rand::Rng;
 use ray::Ray;
 use sphere::{MovingSphere, Sphere};
@@ -39,7 +41,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 225;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 400;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -50,8 +52,9 @@ fn main() {
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(13., 2., 3.);
-    let lookat = Point3::new(0., 0., 0.);
+    let lookfrom = Point3::new(26., 3., 6.);
+    let lookat = Point3::new(0., 2., 0.);
+    let background = Color::new(0., 0., 0.);
 
     println!(
         "Image size: {}\nJPEG IMAGE_QUALITY: {}",
@@ -64,7 +67,8 @@ fn main() {
     // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
     // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
     // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
-    let main_world = BvhNode::new_list(&earth(), time0, time1);
+    // let main_world = BvhNode::new_list(&earth(), time0, time1);
+    let main_world = BvhNode::new_list(&simple_light(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -125,7 +129,7 @@ fn main() {
                             let u = (x as f64 + rand_u) / (IMAGE_WIDTH - 1) as f64;
                             let v = (y as f64 + rand_v) / (IMAGE_HEIGHT - 1) as f64;
                             let r = cam.get_ray(u, v);
-                            pixel_color += ray_color(r, &world, MAX_DEPTH);
+                            pixel_color += ray_color(r, background, &world, MAX_DEPTH);
                         }
                         section_pixel_color.push(pixel_color);
                     }
@@ -188,21 +192,19 @@ fn main() {
     exit(0);
 }
 
-fn ray_color(r: Ray, world: &BvhNode, depth: i32) -> Color {
+fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }
-    if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+        let emitted = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
         if let Some((attenuation, scattered)) = rec.mat_ptr.scatter(r, &rec) {
-            attenuation * ray_color(scattered, world, depth - 1)
+            emitted + attenuation * ray_color(scattered, background, world, depth - 1)
         } else {
-            Color::new(0., 0., 0.)
+            emitted
         }
     } else {
-        // background
-        let unit_direction = r.dir.to_unit();
-        let t = 0.5 * (unit_direction.y + 1.0);
-        Color::new(1., 1., 1.) * (1. - t) + Color::new(0.5, 0.7, 1.) * t
+        background
     }
 }
 
@@ -352,6 +354,7 @@ fn two_perlin_spheres() -> HittableList {
     world
 }
 
+#[allow(dead_code)]
 fn earth() -> HittableList {
     let earth_texture = Arc::new(ImageTexture::new("input/earthmap.jpg"));
     let earth_surface = Arc::new(Lambertian::new_arc(earth_texture));
@@ -363,6 +366,28 @@ fn earth() -> HittableList {
         2.,
         earth_surface,
     )));
+
+    world
+}
+
+#[allow(dead_code)]
+fn simple_light() -> HittableList {
+    let mut world = HittableList::new();
+    let pertext = Arc::new(NoiseTexture::new(4.));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., -1000., 0.),
+        1000.,
+        Arc::new(Lambertian::new_arc(pertext.clone())),
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 2., 0.),
+        2.,
+        Arc::new(Lambertian::new_arc(pertext)),
+    )));
+
+    let difflight = Arc::new(DiffuseLight::new(Color::new(4., 4., 4.)));
+    world.add(Arc::new(XYRect::new(3., 5., 1., 3., -2., difflight)));
 
     world
 }

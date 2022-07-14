@@ -44,7 +44,7 @@
 
 - [x] 5  Perlin Noise
 
-- [ ] 6  Image Texture Mapping
+- [x] 6  Image Texture Mapping
 
 - [ ] 7  Rectangles and Lights
 

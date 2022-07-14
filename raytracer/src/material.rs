@@ -7,11 +7,14 @@ use crate::{
     hittable::HitRecord,
     ray::Ray,
     texture::{SolidColor, Texture},
-    vec::{random_in_unit_sphere, refract, Color, Vec3},
+    vec::{random_in_unit_sphere, refract, Color, Point3, Vec3},
 };
 
 pub trait Material: Send + Sync {
     fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
+    fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+        Color::new(0., 0., 0.)
+    }
 }
 
 pub struct Lambertian {
@@ -118,5 +121,30 @@ impl Material for Dielectric {
         };
 
         Some((Color::new(1., 1., 1.), Ray::new(rec.p, direction, r_in.tm)))
+    }
+}
+
+pub struct DiffuseLight {
+    emit: Arc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(c: Color) -> Self {
+        Self {
+            emit: Arc::new(SolidColor::new(c)),
+        }
+    }
+    #[allow(dead_code)]
+    pub fn new_arc(emit: Arc<dyn Texture>) -> Self {
+        Self { emit }
+    }
+}
+
+impl Material for DiffuseLight {
+    fn scatter(&self, _r_in: Ray, _rec: &HitRecord) -> Option<(Color, Ray)> {
+        None
+    }
+    fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
+        self.emit.value(u, v, p)
     }
 }
