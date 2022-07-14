@@ -24,7 +24,7 @@ use std::{
     sync::{mpsc, Arc},
     thread,
 };
-use texture::{CheckerTexture, NoiseTexture};
+use texture::{CheckerTexture, ImageTexture, NoiseTexture};
 use vec::{Color, Point3, Vec3};
 
 use crate::bvh::BvhNode;
@@ -63,7 +63,8 @@ fn main() {
     // let main_world = random_scene();
     // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
     // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
-    let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
+    // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
+    let main_world = BvhNode::new_list(&earth(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -332,6 +333,7 @@ fn two_spheres() -> HittableList {
     world
 }
 
+#[allow(dead_code)]
 fn two_perlin_spheres() -> HittableList {
     let mut world = HittableList::new();
     let pertext = Arc::new(NoiseTexture::new(4.));
@@ -345,6 +347,21 @@ fn two_perlin_spheres() -> HittableList {
         Point3::new(0., 2., 0.),
         2.,
         Arc::new(Lambertian::new_arc(pertext)),
+    )));
+
+    world
+}
+
+fn earth() -> HittableList {
+    let earth_texture = Arc::new(ImageTexture::new("input/earthmap.jpg"));
+    let earth_surface = Arc::new(Lambertian::new_arc(earth_texture));
+
+    let mut world = HittableList::new();
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 0., 0.),
+        2.,
+        earth_surface,
     )));
 
     world

@@ -42,7 +42,7 @@
 
 - [x] 4  Solid Textures
 
-- [ ] 5  Perlin Noise
+- [x] 5  Perlin Noise
 
 - [ ] 6  Image Texture Mapping
 

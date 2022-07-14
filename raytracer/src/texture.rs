@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use image::GenericImageView;
+
 use super::perlin::Perlin;
 use super::vec::{Color, Point3};
 
@@ -64,5 +66,64 @@ impl NoiseTexture {
 impl Texture for NoiseTexture {
     fn value(&self, _u: f64, _v: f64, p: Point3) -> Color {
         Color::new(1., 1., 1.) * 0.5 * (1. + (self.scale * p.z + 10. * self.noise.turb(p, 7)).sin())
+    }
+}
+
+pub struct ImageTexture {
+    width: u32,
+    height: u32,
+    pixel_color: Vec<[u8; 3]>,
+}
+
+impl ImageTexture {
+    pub fn new(filename: &str) -> Self {
+        let img = image::open(filename).unwrap();
+        let (width, height) = img.dimensions();
+        let mut pixel_color: Vec<[u8; 3]> = Default::default();
+
+        for y in 0..height {
+            for x in 0..width {
+                let pixel = img.get_pixel(x, height - y - 1);
+                let tmp = [pixel[0], pixel[1], pixel[2]];
+                pixel_color.push(tmp);
+            }
+        }
+
+        Self {
+            width,
+            height,
+            pixel_color,
+        }
+    }
+}
+
+impl Texture for ImageTexture {
+    fn value(&self, u: f64, v: f64, _p: Point3) -> Color {
+        if self.pixel_color.is_empty() {
+            return Color::new(0., 1., 1.);
+        }
+
+        let u = u.clamp(0., 1.);
+        let v = v.clamp(0., 1.);
+
+        let mut i = (u * self.width as f64) as usize;
+        let mut j = (v * self.height as f64) as usize;
+
+        if i >= self.width as usize {
+            i = self.width as usize - 1;
+        }
+
+        if j >= self.height as usize {
+            j = self.height as usize - 1;
+        }
+
+        let color_scale = 1. / 255.999;
+        let pixel = self.pixel_color[j * self.width as usize + i];
+
+        Color::new(
+            pixel[0] as f64 * color_scale,
+            pixel[1] as f64 * color_scale,
+            pixel[2] as f64 * color_scale,
+        )
     }
 }
