@@ -96,15 +96,17 @@ impl Perlin {
         }
         accum
     }
-    //        static double trilinear_interp(double c[2][2][2], double u, double v, double w) {
-    //            auto accum = 0.0;
-    //            for (int i=0; i < 2; i++)
-    //                for (int j=0; j < 2; j++)
-    //                    for (int k=0; k < 2; k++)
-    //                        accum += (i*u + (1-i)*(1-u))*
-    //                                (j*v + (1-j)*(1-v))*
-    //                                (k*w + (1-k)*(1-w))*c[i][j][k];
-    //
-    //            return accum;
-    //        }
+    pub fn turb(&self, p: Point3, depth: i32) -> f64 {
+        let mut accum = 0.;
+        let mut tmp_p = p;
+        let mut weight = 1.;
+
+        for _i in 0..depth {
+            accum += weight * self.noise(tmp_p);
+            weight *= 0.5;
+            tmp_p *= 2.;
+        }
+
+        accum.abs()
+    }
 }
