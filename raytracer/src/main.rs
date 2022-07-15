@@ -1,7 +1,9 @@
 mod aabb;
 mod aarect;
+mod boxes;
 mod bvh;
 mod camera;
+mod constantmedium;
 mod hittable;
 mod material;
 mod perlin;
@@ -9,12 +11,12 @@ mod ray;
 mod sphere;
 mod texture;
 mod vec;
-mod boxes;
 
-use aarect::{XYRect, YZRect, XZRect};
+use aarect::{XYRect, XZRect, YZRect};
 use boxes::Boxes;
 use camera::Camera;
 use console::style;
+use constantmedium::ConstantMedium;
 use hittable::{Hittable, HittableList, RotateY, Translate};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
@@ -71,7 +73,8 @@ fn main() {
     // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
     // let main_world = BvhNode::new_list(&earth(), time0, time1);
     // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
-    let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
+    // let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
+    let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -233,7 +236,7 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
 
 #[allow(dead_code)]
 fn random_scene() -> HittableList {
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
 
     let checker = Arc::new(CheckerTexture::new(
         Color::new(0.2, 0.3, 0.1),
@@ -316,7 +319,7 @@ fn random_scene() -> HittableList {
 
 #[allow(dead_code)]
 fn two_spheres() -> HittableList {
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
 
     let checker = Arc::new(CheckerTexture::new(
         Color::new(0.2, 0.3, 0.1),
@@ -340,7 +343,7 @@ fn two_spheres() -> HittableList {
 
 #[allow(dead_code)]
 fn two_perlin_spheres() -> HittableList {
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
     let pertext = Arc::new(NoiseTexture::new(4.));
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
@@ -362,7 +365,7 @@ fn earth() -> HittableList {
     let earth_texture = Arc::new(ImageTexture::new("input/earthmap.jpg"));
     let earth_surface = Arc::new(Lambertian::new_arc(earth_texture));
 
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
 
     world.add(Arc::new(Sphere::new(
         Point3::new(0., 0., 0.),
@@ -375,7 +378,7 @@ fn earth() -> HittableList {
 
 #[allow(dead_code)]
 fn simple_light() -> HittableList {
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
     let pertext = Arc::new(NoiseTexture::new(4.));
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
@@ -397,7 +400,7 @@ fn simple_light() -> HittableList {
 
 #[allow(dead_code)]
 fn cornell_box() -> HittableList {
-    let mut world = HittableList::new();
+    let mut world: HittableList = Default::default();
 
     let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
     let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
@@ -408,31 +411,98 @@ fn cornell_box() -> HittableList {
     world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
     world.add(Arc::new(XZRect::new(213., 343., 227., 332., 554., light)));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
-    world.add(Arc::new(XZRect::new(0., 555., 0., 555., 555., white.clone())));
-    world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white.clone())));
+    world.add(Arc::new(XZRect::new(
+        0.,
+        555.,
+        0.,
+        555.,
+        555.,
+        white.clone(),
+    )));
+    world.add(Arc::new(XYRect::new(
+        0.,
+        555.,
+        0.,
+        555.,
+        555.,
+        white.clone(),
+    )));
 
-// shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
-// box1 = make_shared<rotate_y>(box1, 15);
-// box1 = make_shared<translate>(box1, vec3(265,0,295));
-// objects.add(box1);
-// 
-// shared_ptr<hittable> box2 = make_shared<box>(point3(0,0,0), point3(165,165,165), white);
-// box2 = make_shared<rotate_y>(box2, -18);
-// box2 = make_shared<translate>(box2, vec3(130,0,65));
-// objects.add(box2);
-
-    let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(Point3::new(0., 0., 0.), Point3::new(165., 330., 165.), white.clone()));
+    let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(
+        Point3::new(0., 0., 0.),
+        Point3::new(165., 330., 165.),
+        white.clone(),
+    ));
     box1 = Arc::new(RotateY::new(box1, 15.));
     box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
     world.add(box1);
 
-    let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(Point3::new(0., 0., 0.), Point3::new(165., 165., 165.), white.clone()));
+    let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(
+        Point3::new(0., 0., 0.),
+        Point3::new(165., 165., 165.),
+        white,
+    ));
     box2 = Arc::new(RotateY::new(box2, -18.));
     box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
     world.add(box2);
 
-//    world.add(Arc::new(Boxes::new(Point3::new(130., 0., 65.), Point3::new(295., 165., 230.), white.clone())));
-//    world.add(Arc::new(Boxes::new(Point3::new(265., 0., 295.), Point3::new(430., 330., 460.), white)));
+    world
+}
+
+pub fn cornell_smoke() -> HittableList {
+    let mut world: HittableList = Default::default();
+
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::new(Color::new(7., 7., 7.)));
+
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., green)));
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
+    world.add(Arc::new(XZRect::new(113., 443., 127., 432., 554., light)));
+    world.add(Arc::new(XZRect::new(
+        0.,
+        555.,
+        0.,
+        555.,
+        555.,
+        white.clone(),
+    )));
+    world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
+    world.add(Arc::new(XYRect::new(
+        0.,
+        555.,
+        0.,
+        555.,
+        555.,
+        white.clone(),
+    )));
+
+    let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(
+        Point3::new(0., 0., 0.),
+        Point3::new(165., 330., 165.),
+        white.clone(),
+    ));
+    box1 = Arc::new(RotateY::new(box1, 15.));
+    box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
+    world.add(Arc::new(ConstantMedium::new(
+        box1,
+        0.01,
+        Color::new(0., 0., 0.),
+    )));
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(
+        Point3::new(0., 0., 0.),
+        Point3::new(165., 165., 165.),
+        white,
+    ));
+    box2 = Arc::new(RotateY::new(box2, -18.));
+    box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
+    world.add(Arc::new(ConstantMedium::new(
+        box2,
+        0.01,
+        Color::new(1., 1., 1.),
+    )));
 
     world
 }

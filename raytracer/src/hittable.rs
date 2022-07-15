@@ -56,13 +56,15 @@ pub struct HittableList {
     pub objects: Vec<Arc<dyn Hittable>>,
 }
 
-impl HittableList {
-    pub fn new() -> Self {
+impl Default for HittableList {
+    fn default() -> Self {
         Self {
             objects: Vec::new(),
         }
     }
+}
 
+impl HittableList {
     pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object);
     }
@@ -117,9 +119,13 @@ impl Translate {
 }
 
 impl Hittable for Translate {
+    #[allow(clippy::manual_map)]
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         if let Some(output_box) = self.ptr.bounding_box(time0, time1) {
-            Some(AABB::new(output_box.min + self.offset, output_box.max + self.offset))
+            Some(AABB::new(
+                output_box.min + self.offset,
+                output_box.max + self.offset,
+            ))
         } else {
             None
         }
@@ -149,7 +155,7 @@ impl RotateY {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
-        if let Some(output_box) = p.bounding_box(0., 1.) { 
+        if let Some(output_box) = p.bounding_box(0., 1.) {
             let mut min = Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
             let mut max = Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
             for i in 0..2 {
@@ -158,8 +164,8 @@ impl RotateY {
                         let x = i as f64 * output_box.max.x + (1 - i) as f64 * output_box.min.x;
                         let y = j as f64 * output_box.max.y + (1 - j) as f64 * output_box.min.y;
                         let z = k as f64 * output_box.max.z + (1 - k) as f64 * output_box.min.z;
-                    
-                        let newx = cos_theta * x  + sin_theta * z;
+
+                        let newx = cos_theta * x + sin_theta * z;
                         let newz = -sin_theta * x + cos_theta * z;
 
                         let tester = Vec3::new(newx, y, newz);
