@@ -9,8 +9,10 @@ mod ray;
 mod sphere;
 mod texture;
 mod vec;
+mod boxes;
 
 use aarect::{XYRect, YZRect, XZRect};
+use boxes::Boxes;
 use camera::Camera;
 use console::style;
 use hittable::{Hittable, HittableList};
@@ -407,7 +409,10 @@ fn cornell_box() -> HittableList {
     world.add(Arc::new(XZRect::new(213., 343., 227., 332., 554., light)));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 555., white.clone())));
-    world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white)));
+    world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white.clone())));
+
+    world.add(Arc::new(Boxes::new(Point3::new(130., 0., 65.), Point3::new(295., 165., 230.), white.clone())));
+    world.add(Arc::new(Boxes::new(Point3::new(265., 0., 295.), Point3::new(430., 330., 460.), white)));
 
     world
 }
