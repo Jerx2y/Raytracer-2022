@@ -41,12 +41,12 @@ fn main() {
 
     // Image
     let path = "output/output.jpg";
-    const IMAGE_WIDTH: u32 = 600;
-    const IMAGE_HEIGHT: u32 = 600;
+    const IMAGE_WIDTH: u32 = 800;
+    const IMAGE_HEIGHT: u32 = 800;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
     const SAMPLES_PER_PIXEL: i32 = 200;
-    const MAX_DEPTH: i32 = 50;
+    const MAX_DEPTH: i32 = 60;
     const THREAD_NUMBER: u32 = 7;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
@@ -56,7 +56,7 @@ fn main() {
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(278., 278., -800.);
+    let lookfrom = Point3::new(478., 278., -600.);
     let lookat = Point3::new(278., 278., 0.);
     let background = Color::new(0., 0., 0.);
 
@@ -74,7 +74,8 @@ fn main() {
     // let main_world = BvhNode::new_list(&earth(), time0, time1);
     // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
     // let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
-    let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
+    // let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
+    let main_world = BvhNode::new_list(&final_scene(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -247,13 +248,6 @@ fn random_scene() -> HittableList {
         1000.,
         Arc::new(Lambertian::new_arc(checker)),
     )));
-
-    //    let ground_material = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    //    world.add(Arc::new(Sphere::new(
-    //        Point3::new(0., -1000., 0.),
-    //        1000.,
-    //        ground_material,
-    //    )));
 
     let mut rng = rand::thread_rng();
     for a in -11..=11 {
@@ -449,6 +443,7 @@ fn cornell_box() -> HittableList {
     world
 }
 
+#[allow(dead_code)]
 pub fn cornell_smoke() -> HittableList {
     let mut world: HittableList = Default::default();
 
@@ -502,6 +497,121 @@ pub fn cornell_smoke() -> HittableList {
         box2,
         0.01,
         Color::new(1., 1., 1.),
+    )));
+
+    world
+}
+
+#[allow(dead_code)]
+pub fn final_scene() -> HittableList {
+    let mut box1: HittableList = Default::default();
+    let ground = Arc::new(Lambertian::new(Color::new(0.48, 0.83, 0.53)));
+
+    let boxes_per_side = 20;
+    let mut rng = rand::thread_rng();
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.;
+            let x0 = -1000. + i as f64 * w;
+            let z0 = -1000. + j as f64 * w;
+            let y0 = 0.;
+            let x1 = x0 + w;
+            let y1 = rng.gen_range(1.0..101.0);
+            let z1 = z0 + w;
+
+            box1.add(Arc::new(Boxes::new(
+                Point3::new(x0, y0, z0),
+                Point3::new(x1, y1, z1),
+                ground.clone(),
+            )));
+        }
+    }
+
+    let mut world: HittableList = Default::default();
+
+    world.add(Arc::new(BvhNode::new_list(&box1, 0., 1.)));
+
+    let light = Arc::new(DiffuseLight::new(Color::new(7., 7., 7.)));
+    world.add(Arc::new(XZRect::new(123., 423., 147., 412., 554., light)));
+
+    let center1 = Point3::new(400., 400., 200.);
+    let center2 = center1 + Vec3::new(25., 0., 0.);
+    let moving_sphere_material = Arc::new(Lambertian::new(Color::new(0.7, 0.3, 0.1)));
+    world.add(Arc::new(MovingSphere::new(
+        center1,
+        center2,
+        0.,
+        1.,
+        50.,
+        moving_sphere_material,
+    )));
+
+    world.add(Arc::new(Sphere::new(
+        Point3::new(260., 150., 45.),
+        50.,
+        Arc::new(Dielectric::new(1.5)),
+    )));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(0., 150., 145.),
+        50.,
+        Arc::new(Metal::new(Color::new(0.8, 0.8, 0.9), 1.)),
+    )));
+
+    let boundary = Arc::new(Sphere::new(
+        Point3::new(360., 150., 145.),
+        70.,
+        Arc::new(Dielectric::new(1.5)),
+    ));
+    world.add(boundary.clone());
+    world.add(Arc::new(ConstantMedium::new(
+        boundary,
+        0.2,
+        Color::new(0.2, 0.4, 0.9),
+    )));
+    let boundary = Arc::new(Sphere::new(
+        Point3::new(0., 0., 0.),
+        5000.,
+        Arc::new(Dielectric::new(1.5)),
+    ));
+    world.add(Arc::new(ConstantMedium::new(
+        boundary,
+        0.0001,
+        Color::new(1., 1., 1.),
+    )));
+
+    let emat = Arc::new(Lambertian::new_arc(Arc::new(ImageTexture::new(
+        "input/earthmap.jpg",
+    ))));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(400., 200., 400.),
+        100.,
+        emat,
+    )));
+
+    let pertext = Arc::new(NoiseTexture::new(0.1));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(220., 280., 300.),
+        80.,
+        Arc::new(Lambertian::new_arc(pertext)),
+    )));
+
+    let mut box2: HittableList = Default::default();
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let ns = 1000;
+    for _i in 0..ns {
+        box2.add(Arc::new(Sphere::new(
+            Point3::random(0., 165.),
+            10.,
+            white.clone(),
+        )));
+    }
+
+    world.add(Arc::new(Translate::new(
+        Arc::new(RotateY::new(
+            Arc::new(BvhNode::new_list(&box2, 0., 1.)),
+            15.,
+        )),
+        Vec3::new(-100., 270., 395.),
     )));
 
     world
