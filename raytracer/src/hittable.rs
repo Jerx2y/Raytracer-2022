@@ -101,3 +101,125 @@ impl Hittable for HittableList {
         Some(output_box)
     }
 }
+
+pub struct Translate {
+    ptr: Arc<dyn Hittable>,
+    offset: Vec3,
+}
+
+impl Translate {
+    pub fn new(p: Arc<dyn Hittable>, displacement: Vec3) -> Self {
+        Self {
+            ptr: p,
+            offset: displacement,
+        }
+    }
+}
+
+impl Hittable for Translate {
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        if let Some(output_box) = self.ptr.bounding_box(time0, time1) {
+            Some(AABB::new(output_box.min + self.offset, output_box.max + self.offset))
+        } else {
+            None
+        }
+    }
+
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let moved_r = Ray::new(r.orig - self.offset, r.dir, r.tm);
+        if let Some(mut rec) = self.ptr.hit(moved_r, t_min, t_max) {
+            rec.p += self.offset;
+            rec.set_face_normal(moved_r, rec.normal);
+            Some(rec)
+        } else {
+            None
+        }
+    }
+}
+
+pub struct RotateY {
+    ptr: Arc<dyn Hittable>,
+    sin_theta: f64,
+    cos_theta: f64,
+    aabbox: Option<AABB>,
+}
+
+impl RotateY {
+    pub fn new(p: Arc<dyn Hittable>, angle: f64) -> Self {
+        let radians = angle.to_radians();
+        let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
+        if let Some(output_box) = p.bounding_box(0., 1.) { 
+            let mut min = Point3::new(f64::INFINITY, f64::INFINITY, f64::INFINITY);
+            let mut max = Point3::new(f64::NEG_INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+            for i in 0..2 {
+                for j in 0..2 {
+                    for k in 0..2 {
+                        let x = i as f64 * output_box.max.x + (1 - i) as f64 * output_box.min.x;
+                        let y = j as f64 * output_box.max.y + (1 - j) as f64 * output_box.min.y;
+                        let z = k as f64 * output_box.max.z + (1 - k) as f64 * output_box.min.z;
+                    
+                        let newx = cos_theta * x  + sin_theta * z;
+                        let newz = -sin_theta * x + cos_theta * z;
+
+                        let tester = Vec3::new(newx, y, newz);
+
+                        for c in 0..3 {
+                            min[c] = min[c].min(tester[c]);
+                            max[c] = max[c].max(tester[c]);
+                        }
+                    }
+                }
+            }
+            Self {
+                ptr: p,
+                sin_theta,
+                cos_theta,
+                aabbox: Some(AABB::new(min, max)),
+            }
+        } else {
+            Self {
+                ptr: p,
+                sin_theta,
+                cos_theta,
+                aabbox: None,
+            }
+        }
+    }
+}
+
+impl Hittable for RotateY {
+    fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
+        self.aabbox
+    }
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let mut origin = r.orig;
+        let mut direction = r.dir;
+
+        origin[0] = self.cos_theta * r.orig[0] - self.sin_theta * r.orig[2];
+        origin[2] = self.sin_theta * r.orig[0] + self.cos_theta * r.orig[2];
+
+        direction[0] = self.cos_theta * r.dir[0] - self.sin_theta * r.dir[2];
+        direction[2] = self.sin_theta * r.dir[0] + self.cos_theta * r.dir[2];
+
+        let rotated_r = Ray::new(origin, direction, r.tm);
+
+        if let Some(mut rec) = self.ptr.hit(rotated_r, t_min, t_max) {
+            let mut p = rec.p;
+            let mut normal = rec.normal;
+
+            p[0] = self.cos_theta * rec.p[0] + self.sin_theta * rec.p[2];
+            p[2] = -self.sin_theta * rec.p[0] + self.cos_theta * rec.p[2];
+
+            normal[0] = self.cos_theta * rec.normal[0] + self.sin_theta * rec.normal[2];
+            normal[2] = -self.sin_theta * rec.normal[0] + self.cos_theta * rec.normal[2];
+
+            rec.p = p;
+            rec.set_face_normal(rotated_r, normal);
+
+            Some(rec)
+        } else {
+            None
+        }
+    }
+}

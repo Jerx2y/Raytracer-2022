@@ -15,7 +15,7 @@ use aarect::{XYRect, YZRect, XZRect};
 use boxes::Boxes;
 use camera::Camera;
 use console::style;
-use hittable::{Hittable, HittableList};
+use hittable::{Hittable, HittableList, RotateY, Translate};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use material::{Dielectric, DiffuseLight, Lambertian, Metal};
@@ -43,7 +43,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 500;
+    const SAMPLES_PER_PIXEL: i32 = 200;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 7;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -411,8 +411,28 @@ fn cornell_box() -> HittableList {
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 555., white.clone())));
     world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white.clone())));
 
-    world.add(Arc::new(Boxes::new(Point3::new(130., 0., 65.), Point3::new(295., 165., 230.), white.clone())));
-    world.add(Arc::new(Boxes::new(Point3::new(265., 0., 295.), Point3::new(430., 330., 460.), white)));
+// shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330, 165), white);
+// box1 = make_shared<rotate_y>(box1, 15);
+// box1 = make_shared<translate>(box1, vec3(265,0,295));
+// objects.add(box1);
+// 
+// shared_ptr<hittable> box2 = make_shared<box>(point3(0,0,0), point3(165,165,165), white);
+// box2 = make_shared<rotate_y>(box2, -18);
+// box2 = make_shared<translate>(box2, vec3(130,0,65));
+// objects.add(box2);
+
+    let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(Point3::new(0., 0., 0.), Point3::new(165., 330., 165.), white.clone()));
+    box1 = Arc::new(RotateY::new(box1, 15.));
+    box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
+    world.add(box1);
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(Point3::new(0., 0., 0.), Point3::new(165., 165., 165.), white.clone()));
+    box2 = Arc::new(RotateY::new(box2, -18.));
+    box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
+    world.add(box2);
+
+//    world.add(Arc::new(Boxes::new(Point3::new(130., 0., 65.), Point3::new(295., 165., 230.), white.clone())));
+//    world.add(Arc::new(Boxes::new(Point3::new(265., 0., 295.), Point3::new(430., 330., 460.), white)));
 
     world
 }
