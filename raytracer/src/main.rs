@@ -10,7 +10,7 @@ mod sphere;
 mod texture;
 mod vec;
 
-use aarect::XYRect;
+use aarect::{XYRect, YZRect, XZRect};
 use camera::Camera;
 use console::style;
 use hittable::{Hittable, HittableList};
@@ -37,23 +37,23 @@ fn main() {
 
     // Image
     let path = "output/output.jpg";
-    const IMAGE_WIDTH: u32 = 400;
-    const IMAGE_HEIGHT: u32 = 225;
+    const IMAGE_WIDTH: u32 = 600;
+    const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 400;
+    const SAMPLES_PER_PIXEL: i32 = 500;
     const MAX_DEPTH: i32 = 50;
-    const THREAD_NUMBER: u32 = 8;
+    const THREAD_NUMBER: u32 = 7;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
     let vup = Vec3::new(0., 1., 0.);
-    let vfov = 20.;
-    let aperture = 0.1;
+    let vfov = 40.;
+    let aperture = 0.0;
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(26., 3., 6.);
-    let lookat = Point3::new(0., 2., 0.);
+    let lookfrom = Point3::new(278., 278., -800.);
+    let lookat = Point3::new(278., 278., 0.);
     let background = Color::new(0., 0., 0.);
 
     println!(
@@ -68,7 +68,8 @@ fn main() {
     // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
     // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
     // let main_world = BvhNode::new_list(&earth(), time0, time1);
-    let main_world = BvhNode::new_list(&simple_light(), time0, time1);
+    // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
+    let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -196,7 +197,7 @@ fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }
-    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+    if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
         if let Some((attenuation, scattered)) = rec.mat_ptr.scatter(r, &rec) {
             emitted + attenuation * ray_color(scattered, background, world, depth - 1)
@@ -388,6 +389,25 @@ fn simple_light() -> HittableList {
 
     let difflight = Arc::new(DiffuseLight::new(Color::new(4., 4., 4.)));
     world.add(Arc::new(XYRect::new(3., 5., 1., 3., -2., difflight)));
+
+    world
+}
+
+#[allow(dead_code)]
+fn cornell_box() -> HittableList {
+    let mut world = HittableList::new();
+
+    let red = Arc::new(Lambertian::new(Color::new(0.65, 0.05, 0.05)));
+    let white = Arc::new(Lambertian::new(Color::new(0.73, 0.73, 0.73)));
+    let green = Arc::new(Lambertian::new(Color::new(0.12, 0.45, 0.15)));
+    let light = Arc::new(DiffuseLight::new(Color::new(15., 15., 15.)));
+
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., green)));
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
+    world.add(Arc::new(XZRect::new(213., 343., 227., 332., 554., light)));
+    world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
+    world.add(Arc::new(XZRect::new(0., 555., 0., 555., 555., white.clone())));
+    world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white)));
 
     world
 }
