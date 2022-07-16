@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    aabb::AABB,
-    aarect::{XYRect, XZRect, YZRect},
+    basic::ray::Ray,
+    basic::vec::Point3,
+    hittable::aarect::{XYRect, XZRect, YZRect},
+    hittable::bvh::aabb::AABB,
     hittable::{Hittable, HittableList},
     material::Material,
-    vec::Point3,
 };
 
 pub struct Boxes {
@@ -70,15 +71,10 @@ impl Boxes {
 }
 
 impl Hittable for Boxes {
-    fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<crate::aabb::AABB> {
+    fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         Some(AABB::new(self.min, self.max))
     }
-    fn hit(
-        &self,
-        r: crate::ray::Ray,
-        t_min: f64,
-        t_max: f64,
-    ) -> Option<crate::hittable::HitRecord> {
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<crate::hittable::HitRecord> {
         self.sides.hit(r, t_min, t_max)
     }
 }

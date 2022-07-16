@@ -2,12 +2,11 @@ use std::sync::Arc;
 
 use rand::Rng;
 
-use super::vec::reflect;
 use crate::{
+    basic::ray::Ray,
+    basic::vec::{random_in_unit_sphere, reflect, refract, Color, Point3, Vec3},
     hittable::HitRecord,
-    ray::Ray,
     texture::{SolidColor, Texture},
-    vec::{random_in_unit_sphere, refract, Color, Point3, Vec3},
 };
 
 pub trait Material: Send + Sync {
@@ -168,7 +167,7 @@ impl Material for Isotropic {
     fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         Some((
             self.albedo.value(rec.u, rec.v, rec.p),
-            Ray::new(rec.p, super::vec::random_in_unit_sphere(), r_in.tm),
+            Ray::new(rec.p, random_in_unit_sphere(), r_in.tm),
         ))
     }
 }

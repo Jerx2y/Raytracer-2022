@@ -1,11 +1,11 @@
 use std::f64::consts::PI;
 use std::sync::Arc;
 
-use super::aabb::AABB;
-use super::hittable::{HitRecord, Hittable};
-use super::material::Material;
-use super::ray::Ray;
-use super::vec::{Point3, Vec3};
+use crate::basic::ray::Ray;
+use crate::basic::vec::{Point3, Vec3};
+use crate::hittable::bvh::aabb::AABB;
+use crate::hittable::{HitRecord, Hittable};
+use crate::material::Material;
 
 pub struct Sphere {
     pub center: Point3,

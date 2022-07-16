@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::vec::random_in_unit_disk;
+use crate::basic::vec::random_in_unit_disk;
 
 use super::ray::Ray;
 use super::vec::{Point3, Vec3};

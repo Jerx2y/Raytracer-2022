@@ -46,13 +46,13 @@
 
 - [x] 6  Image Texture Mapping
 
-- [ ] 7  Rectangles and Lights
+- [x] 7  Rectangles and Lights
 
-- [ ] 8  Instances
+- [x] 8  Instances
 
-- [ ] 9  Volumes
+- [x] 9  Volumes
 
-- [ ] 10  A Scene Testing All New Features
+- [x] 10  A Scene Testing All New Features
 
 #### Now Scene
 

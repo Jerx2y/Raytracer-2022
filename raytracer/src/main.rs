@@ -1,39 +1,30 @@
-mod aabb;
-mod aarect;
-mod boxes;
-mod bvh;
-mod camera;
-mod constantmedium;
+mod basic;
 mod hittable;
 mod material;
-mod perlin;
-mod ray;
-mod sphere;
 mod texture;
-mod vec;
 
-use aarect::{XYRect, XZRect, YZRect};
-use boxes::Boxes;
-use camera::Camera;
 use console::style;
-use constantmedium::ConstantMedium;
-use hittable::{Hittable, HittableList, RotateY, Translate};
 use image::{ImageBuffer, RgbImage};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use rand::Rng;
-use ray::Ray;
-use sphere::{MovingSphere, Sphere};
 use std::{
     fs::File,
     process::exit,
     sync::{mpsc, Arc},
     thread,
 };
-use texture::{CheckerTexture, ImageTexture, NoiseTexture};
-use vec::{Color, Point3, Vec3};
 
-use crate::bvh::BvhNode;
+use basic::camera::Camera;
+use basic::ray::Ray;
+use basic::vec::{Color, Point3, Vec3};
+use hittable::aarect::{XYRect, XZRect, YZRect};
+use hittable::boxes::Boxes;
+use hittable::bvh::BvhNode;
+use hittable::constantmedium::ConstantMedium;
+use hittable::sphere::{MovingSphere, Sphere};
+use hittable::{Hittable, HittableList, RotateY, Translate};
+use material::{Dielectric, DiffuseLight, Lambertian, Metal};
+use texture::{CheckerTexture, ImageTexture, NoiseTexture};
 
 fn main() {
     print!("{}[2J", 27 as char); // Clear screen
@@ -45,9 +36,9 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 800;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 200;
+    const SAMPLES_PER_PIXEL: i32 = 10000;
     const MAX_DEPTH: i32 = 60;
-    const THREAD_NUMBER: u32 = 7;
+    const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
     let vup = Vec3::new(0., 1., 0.);

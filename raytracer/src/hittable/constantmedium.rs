@@ -3,10 +3,12 @@ use std::{f64::consts::E, sync::Arc};
 use rand::Rng;
 
 use crate::{
+    basic::ray::Ray,
+    basic::vec::{Color, Vec3},
+    hittable::bvh::aabb::AABB,
     hittable::{HitRecord, Hittable},
     material::{Isotropic, Material},
     texture::Texture,
-    vec::{Color, Vec3},
 };
 
 pub struct ConstantMedium {
@@ -34,15 +36,10 @@ impl ConstantMedium {
 }
 
 impl Hittable for ConstantMedium {
-    fn bounding_box(&self, time0: f64, time1: f64) -> Option<crate::aabb::AABB> {
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         self.boundary.bounding_box(time0, time1)
     }
-    fn hit(
-        &self,
-        r: crate::ray::Ray,
-        t_min: f64,
-        t_max: f64,
-    ) -> Option<crate::hittable::HitRecord> {
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<crate::hittable::HitRecord> {
         if let Some(mut rec1) = self.boundary.hit(r, f64::NEG_INFINITY, f64::INFINITY) {
             if let Some(mut rec2) = self.boundary.hit(r, rec1.t + 0.0001, f64::INFINITY) {
                 rec1.t = rec1.t.max(t_min);
@@ -78,28 +75,3 @@ impl Hittable for ConstantMedium {
         }
     }
 }
-
-//class constant_medium : public hittable {
-//    public:
-//        constant_medium(shared_ptr<hittable> b, double d, shared_ptr<texture> a)
-//            : boundary(b),
-//              neg_inv_density(-1/d),
-//              phase_function(make_shared<isotropic>(a))
-//            {}
-//
-//        constant_medium(shared_ptr<hittable> b, double d, color c)
-//            : boundary(b),
-//              neg_inv_density(-1/d),
-//              phase_function(make_shared<isotropic>(c))
-//            {}
-//
-//        virtual bool hit(
-//            const ray& r, double t_min, double t_max, hit_record& rec) const override;
-//
-//        virtual bool bounding_box(double time0, double time1, aabb& output_box) const override {
-//            return boundary->bounding_box(time0, time1, output_box);
-//        }
-//
-//    public:
-//};
-//

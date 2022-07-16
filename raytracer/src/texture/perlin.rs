@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::vec::{Point3, Vec3};
+use crate::basic::vec::{Point3, Vec3};
 
 const POINT_COUNT: usize = 256;
 

@@ -1,9 +1,11 @@
+pub mod perlin;
+
 use std::sync::Arc;
 
 use image::GenericImageView;
 
-use super::perlin::Perlin;
-use super::vec::{Color, Point3};
+use crate::basic::vec::{Color, Point3};
+use crate::texture::perlin::Perlin;
 
 pub trait Texture: Send + Sync {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color;

@@ -1,9 +1,15 @@
+pub mod aarect;
+pub mod boxes;
+pub mod bvh;
+pub mod constantmedium;
+pub mod sphere;
+
 use std::sync::Arc;
 
-use super::aabb::AABB;
+use super::basic::ray::Ray;
+use super::basic::vec::{Point3, Vec3};
+use super::hittable::bvh::aabb::AABB;
 use super::material::Material;
-use super::ray::Ray;
-use super::vec::{Point3, Vec3};
 
 pub struct HitRecord {
     pub p: Point3,

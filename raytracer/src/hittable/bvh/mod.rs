@@ -1,10 +1,12 @@
+pub mod aabb;
+
+use rand::Rng;
 use std::cmp::Ordering;
 use std::sync::Arc;
 
-use rand::Rng;
-
-use super::aabb::AABB;
+use crate::basic::ray::Ray;
 use crate::hittable::{Hittable, HittableList};
+use aabb::AABB;
 
 #[derive(Clone)]
 pub struct BvhNode {
@@ -25,15 +27,6 @@ impl BvhNode {
             Ordering::Equal
         }
     }
-    // pub fn box_x_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>) -> Ordering {
-    //     BvhNode::box_compare(a, b, 0)
-    // }
-    // pub fn box_y_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>) -> Ordering {
-    //     BvhNode::box_compare(a, b, 1)
-    // }
-    // pub fn box_z_compare(a: Arc<dyn Hittable>, b: Arc<dyn Hittable>) -> Ordering {
-    //     BvhNode::box_compare(a, b, 2)
-    // }
     pub fn new_list(list: &HittableList, time0: f64, time1: f64) -> Self {
         BvhNode::new_vec(list.objects.clone(), time0, time1)
     }
@@ -90,12 +83,7 @@ impl BvhNode {
 
 impl Hittable for BvhNode {
     #[allow(clippy::manual_map)]
-    fn hit(
-        &self,
-        r: crate::ray::Ray,
-        t_min: f64,
-        t_max: f64,
-    ) -> Option<crate::hittable::HitRecord> {
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<crate::hittable::HitRecord> {
         if !self.aabbox.hit(r, t_min, t_max) {
             return None;
         }
