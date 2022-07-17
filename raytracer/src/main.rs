@@ -5,13 +5,14 @@ mod texture;
 
 use console::style;
 use image::{ImageBuffer, RgbImage};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::{HumanDuration, MultiProgress, ProgressBar, ProgressStyle};
 use rand::Rng;
 use std::{
     fs::File,
     process::exit,
     sync::{mpsc, Arc},
     thread,
+    time::Instant,
 };
 
 use basic::camera::Camera;
@@ -30,14 +31,21 @@ fn main() {
     print!("{}[2J", 27 as char); // Clear screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Set cursor position as 1,1
 
+    let begin_time = Instant::now();
+    println!(
+        "{} 💿 {}",
+        style("[1/5]").bold().dim(),
+        style("Initlizing...").green()
+    );
+
     // Image
     let path = "output/output.jpg";
     const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = 800;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 10000;
-    const MAX_DEPTH: i32 = 60;
+    const SAMPLES_PER_PIXEL: i32 = 100;
+    const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
@@ -81,6 +89,23 @@ fn main() {
         time1,
     );
 
+    println!(
+        "{} 🚀 {} {} {}",
+        style("[2/5]").bold().dim(),
+        style("Rendering with").green(),
+        style(THREAD_NUMBER.to_string()).yellow(),
+        style("Threads...").green(),
+    );
+
+    // Random line
+    let mut random_line_id: Vec<u32> = Vec::new();
+    let mut rng = rand::thread_rng();
+    for i in 0..IMAGE_HEIGHT {
+        random_line_id.push(i);
+        let target = rng.gen_range(0..i + 1);
+        random_line_id.swap(i as usize, target as usize);
+    }
+
     // Progress bar
     let multiprogress = Arc::new(MultiProgress::new());
     multiprogress.set_move_cursor(true);
@@ -91,6 +116,7 @@ fn main() {
 
     for thread_id in 0..THREAD_NUMBER {
         // line
+        let line_id = random_line_id.clone();
         let line_beg = thread_id * SECTION_LINE_NUM;
         let mut line_end = line_beg + SECTION_LINE_NUM;
         if thread_id == THREAD_NUMBER - 1 {
@@ -118,8 +144,9 @@ fn main() {
                 let mut section_pixel_color = Vec::<Color>::new();
 
                 let mut rng = rand::thread_rng();
-                for y in line_beg..line_end {
+                for y_id in line_beg..line_end {
                     for x in 0..IMAGE_WIDTH {
+                        let y = line_id[y_id as usize];
                         let mut pixel_color = Color::new(0., 0., 0.);
                         for _i in 0..SAMPLES_PER_PIXEL {
                             let rand_u: f64 = rng.gen();
@@ -142,7 +169,12 @@ fn main() {
     }
     multiprogress.join().unwrap();
 
-    let mut thread_finish = true;
+    println!(
+        "{} 🚛 {}",
+        style("[3/5]").bold().dim(),
+        style("Collecting Threads Results...").green(),
+    );
+
     for _thread_id in 0..THREAD_NUMBER {
         let thread = thread_pool.remove(0);
         match thread.0.join() {
@@ -151,26 +183,35 @@ fn main() {
                 output_pixel_color.append(&mut received);
             }
             Err(_) => {
-                thread_finish = false;
+                println!("Thread error");
+                exit(0);
             }
         }
     }
 
-    if !thread_finish {
-        println!("run time error");
-        exit(0);
-    }
+    println!(
+        "{} 🏭 {}",
+        style("[4/5]").bold().dim(),
+        style("Generating Image...").green()
+    );
 
     let mut img: RgbImage = ImageBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT);
     let mut pixel_id = 0;
-    for y in 0..IMAGE_HEIGHT {
+    for y_id in 0..IMAGE_HEIGHT {
         for x in 0..IMAGE_WIDTH {
+            let y = random_line_id[y_id as usize];
             let pixel_color = output_pixel_color[pixel_id];
             let pixel = img.get_pixel_mut(x, IMAGE_HEIGHT - y - 1);
             *pixel = image::Rgb(write_color(pixel_color, SAMPLES_PER_PIXEL));
             pixel_id += 1;
         }
     }
+
+    println!(
+        "{} 🥽 {}",
+        style("[5/5]").bold().dim(),
+        style("Outping Image...").green()
+    );
 
     // ==================== afterwork ====================
 
@@ -186,6 +227,13 @@ fn main() {
         // Err(_) => panic!("Outputting image fails."),
         Err(_) => println!("{}", style("Outputting image fails.").red()),
     }
+
+    println!(
+        "\n      🎉 {}\n      🕒 Elapsed Time: {}",
+        style("All Work Done.").bold().green(),
+        style(HumanDuration(begin_time.elapsed())).yellow(),
+    );
+    println!("\n");
 
     exit(0);
 }

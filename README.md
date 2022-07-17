@@ -2,61 +2,12 @@
 
 ## 进度
 ### Book1
-
-- [x] 1  Overview
-
-- [x] 2  Output an Image
-
-- [x] 3  The vec3 Class
-
-- [x] 4  Rays, a Simple Camera, and Background
-
-- [x] 5  Adding a Sphere
-
-- [x] 6  Surface Normals and Multiple Objects
-
-- [x] 7  Antialiasing
-
-- [x] 8  Diffuse Materials
-
-- [x] 9  Metal
-
-- [x] 10  Dielectrics
- 
-- [x]  11  Positionable Camera
- 
-- [x]  12  Defocus Blur
- 
-- [x]  13  Where Next?
-
 #### Final Scene
 ![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
 ### Book2
-
-- [x] 1  Overview
-
-- [x] 2  Motion Blur
-
-- [x] 3  Bounding Volume Hierarchies
-
-- [x] 4  Solid Textures
-
-- [x] 5  Perlin Noise
-
-- [x] 6  Image Texture Mapping
-
-- [x] 7  Rectangles and Lights
-
-- [x] 8  Instances
-
-- [x] 9  Volumes
-
-- [x] 10  A Scene Testing All New Features
-
-#### Now Scene
-
-![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+#### Final Scene
+![output.jpg](https://s2.loli.net/2022/07/17/SJkvCEGfYmT6Dsb.jpg)
 
 ## 课程介绍
 
