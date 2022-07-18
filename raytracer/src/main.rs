@@ -15,9 +15,12 @@ use std::{
     time::Instant,
 };
 
-use basic::vec::{Color, Point3, Vec3};
 use basic::{camera::Camera, pdf::Pdf};
 use basic::{pdf::HittablePdf, ray::Ray};
+use basic::{
+    pdf::{CosPdf, MixturePdf},
+    vec::{Color, Point3, Vec3},
+};
 use hittable::boxes::Boxes;
 use hittable::bvh::BvhNode;
 use hittable::constantmedium::ConstantMedium;
@@ -47,7 +50,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 10;
+    const SAMPLES_PER_PIXEL: i32 = 1000;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -265,9 +268,13 @@ fn ray_color(
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(r, &rec, rec.u, rec.v, rec.p);
         if let Some((albedo, mut _scattered, mut _pdf)) = rec.mat_ptr.scatter(r, &rec) {
-            let light_pdf = HittablePdf::new(lights.clone(), rec.p);
-            let scattered = Ray::new(rec.p, light_pdf.generate(), r.tm);
-            let pdf_val = light_pdf.value(scattered.dir);
+            let p0 = Arc::new(HittablePdf::new(lights.clone(), rec.p));
+            let p1 = Arc::new(CosPdf::new(rec.normal));
+            let p = MixturePdf::new(p0, p1);
+
+            let scattered = Ray::new(rec.p, p.generate(), r.tm);
+            let pdf_val = p.value(scattered.dir);
+
             emitted
                 + albedo
                     * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
