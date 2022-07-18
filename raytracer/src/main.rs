@@ -15,12 +15,9 @@ use std::{
     time::Instant,
 };
 
-use basic::ray::Ray;
 use basic::vec::{Color, Point3, Vec3};
-use basic::{
-    camera::Camera,
-    pdf::{CosPdf, Pdf},
-};
+use basic::{camera::Camera, pdf::Pdf};
+use basic::{pdf::HittablePdf, ray::Ray};
 use hittable::boxes::Boxes;
 use hittable::bvh::BvhNode;
 use hittable::constantmedium::ConstantMedium;
@@ -133,6 +130,14 @@ fn main() {
 
         // world
         let world = main_world.clone();
+        let lights = Arc::new(XZRect::new(
+            213.,
+            343.,
+            227.,
+            332.,
+            554.,
+            Arc::new(Dielectric::new(0.)),
+        ));
 
         //progress
         let mp = multiprogress.clone();
@@ -162,7 +167,8 @@ fn main() {
                             let u = (x as f64 + rand_u) / (IMAGE_WIDTH - 1) as f64;
                             let v = (y as f64 + rand_v) / (IMAGE_HEIGHT - 1) as f64;
                             let r = cam.get_ray(u, v);
-                            pixel_color += ray_color(r, background, &world, MAX_DEPTH);
+                            pixel_color +=
+                                ray_color(r, background, &world, lights.clone(), MAX_DEPTH);
                         }
                         section_pixel_color.push(pixel_color);
                     }
@@ -246,20 +252,26 @@ fn main() {
     exit(0);
 }
 
-fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
+fn ray_color(
+    r: Ray,
+    background: Color,
+    world: &BvhNode,
+    lights: Arc<dyn Hittable>,
+    depth: i32,
+) -> Color {
     if depth <= 0 {
         return Color::new(0., 0., 0.);
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(r, &rec, rec.u, rec.v, rec.p);
         if let Some((albedo, mut _scattered, mut _pdf)) = rec.mat_ptr.scatter(r, &rec) {
-            let p = CosPdf::new(rec.normal);
-            let scattered = Ray::new(rec.p, p.generate(), r.tm);
-            let pdf_val = p.value(scattered.dir);
+            let light_pdf = HittablePdf::new(lights.clone(), rec.p);
+            let scattered = Ray::new(rec.p, light_pdf.generate(), r.tm);
+            let pdf_val = light_pdf.value(scattered.dir);
             emitted
                 + albedo
                     * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
-                    * ray_color(scattered, background, world, depth - 1)
+                    * ray_color(scattered, background, world, lights, depth - 1)
                     / pdf_val
         } else {
             emitted

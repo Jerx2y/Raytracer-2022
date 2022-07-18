@@ -1,8 +1,13 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, sync::Arc};
 
 use rand::Rng;
 
-use super::{onb::Onb, vec::Vec3};
+use crate::hittable::Hittable;
+
+use super::{
+    onb::Onb,
+    vec::{Point3, Vec3},
+};
 
 pub fn random_cosine_direction() -> Vec3 {
     let mut rng = rand::thread_rng();
@@ -25,6 +30,7 @@ pub struct CosPdf {
 }
 
 impl CosPdf {
+    #[allow(dead_code)]
     pub fn new(w: Vec3) -> Self {
         Self {
             uvw: Onb::build_from_w(w),
@@ -43,5 +49,25 @@ impl Pdf for CosPdf {
         } else {
             cos / PI
         }
+    }
+}
+
+pub struct HittablePdf {
+    o: Point3,
+    ptr: Arc<dyn Hittable>,
+}
+
+impl HittablePdf {
+    pub fn new(ptr: Arc<dyn Hittable>, o: Point3) -> Self {
+        Self { o, ptr }
+    }
+}
+
+impl Pdf for HittablePdf {
+    fn generate(&self) -> Vec3 {
+        self.ptr.random(self.o)
+    }
+    fn value(&self, direction: Vec3) -> f64 {
+        self.ptr.pdf_value(self.o, direction)
     }
 }
