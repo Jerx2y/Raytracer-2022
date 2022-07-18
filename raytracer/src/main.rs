@@ -44,7 +44,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 500;
+    const SAMPLES_PER_PIXEL: i32 = 10;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -246,7 +246,22 @@ fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
-        if let Some((albedo, scattered, pdf)) = rec.mat_ptr.scatter(r, &rec) {
+        if let Some((albedo, mut scattered, mut pdf)) = rec.mat_ptr.scatter(r, &rec) {
+            let mut rng = rand::thread_rng();
+            let on_light = Point3::new(rng.gen_range(213.0..343.0), 554., rng.gen_range(227.0..332.0));
+            let mut to_light = on_light - rec.p;
+            let dis_sqr = to_light.length_sqr();
+            to_light = to_light.to_unit();
+            if Vec3::dot(to_light, rec.normal) < 0. {
+                return emitted;
+            }
+            let light_area = (343. - 213.) * (332. - 227.);
+            let light_cos = to_light.y.abs();
+            if light_cos < 0.000001 {
+                return emitted;
+            }
+            pdf = dis_sqr / (light_cos * light_area);
+            scattered = Ray::new(rec.p, to_light, r.tm);
             emitted
                 + albedo
                     * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
