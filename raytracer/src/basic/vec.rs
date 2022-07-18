@@ -1,5 +1,4 @@
 use rand::Rng;
-use std::f64::consts::PI;
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
@@ -91,17 +90,6 @@ pub fn random_in_unit_disk() -> Vec3 {
             return p;
         }
     }
-}
-
-pub fn random_cosine_direction() -> Vec3 {
-    let mut rng = rand::thread_rng();
-    let r1: f64 = rng.gen();
-    let r2: f64 = rng.gen();
-    let z = (1. - r2).sqrt();
-    let phi = 2. * PI * r1;
-    let x = phi.cos() * r2.sqrt();
-    let y = phi.sin() * r2.sqrt();
-    Vec3::new(x, y, z)
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {

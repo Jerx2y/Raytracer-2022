@@ -9,6 +9,10 @@
 #### Final Scene
 ![output.jpg](https://s2.loli.net/2022/07/17/SJkvCEGfYmT6Dsb.jpg)
 
+### Book3
+#### Now Scene
+![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+
 ### Bonus
 
 - [ ] Track 5: More Code Generation 在过程宏中，读取文件，直接从 yaml 或 JSON 文件（选择一种即可）生成场景对应的程序。

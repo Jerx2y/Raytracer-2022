@@ -6,9 +6,8 @@ use crate::{
     basic::ray::Ray,
     basic::{
         onb::Onb,
-        vec::{
-            random_cosine_direction, random_in_unit_sphere, reflect, refract, Color, Point3, Vec3,
-        },
+        pdf::random_cosine_direction,
+        vec::{random_in_unit_sphere, reflect, refract, Color, Point3, Vec3},
     },
     hittable::HitRecord,
     texture::{SolidColor, Texture},
