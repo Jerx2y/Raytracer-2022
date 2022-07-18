@@ -44,7 +44,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 500;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -60,9 +60,11 @@ fn main() {
     let background = Color::new(0., 0., 0.);
 
     println!(
-        "Image size: {}\nJPEG IMAGE_QUALITY: {}",
+        "IMAGE SIZE: {}\nJPEG QUALITY: {}\nSAMPLE PER PIXEL: {}\nMAX DEPTH: {}",
         style(IMAGE_WIDTH.to_string() + &"x".to_string() + &IMAGE_HEIGHT.to_string()).yellow(),
         style(IMAGE_QUALITY.to_string()).yellow(),
+        style(SAMPLES_PER_PIXEL.to_string()).yellow(),
+        style(MAX_DEPTH.to_string()).yellow(),
     );
 
     // World
@@ -98,10 +100,10 @@ fn main() {
     );
 
     // Random line
-    let mut random_line_id: Vec<u32> = Vec::new();
+    let mut random_line_id: [u32; IMAGE_HEIGHT as usize] = [0; IMAGE_HEIGHT as usize];
     let mut rng = rand::thread_rng();
     for i in 0..IMAGE_HEIGHT {
-        random_line_id.push(i);
+        random_line_id[i as usize] = i;
         let target = rng.gen_range(0..i + 1);
         random_line_id.swap(i as usize, target as usize);
     }
@@ -116,7 +118,7 @@ fn main() {
 
     for thread_id in 0..THREAD_NUMBER {
         // line
-        let line_id = random_line_id.clone();
+        let line_id = random_line_id;
         let line_beg = thread_id * SECTION_LINE_NUM;
         let mut line_end = line_beg + SECTION_LINE_NUM;
         if thread_id == THREAD_NUMBER - 1 {
@@ -244,8 +246,12 @@ fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
-        if let Some((attenuation, scattered)) = rec.mat_ptr.scatter(r, &rec) {
-            emitted + attenuation * ray_color(scattered, background, world, depth - 1)
+        if let Some((albedo, scattered, pdf)) = rec.mat_ptr.scatter(r, &rec) {
+            emitted
+                + albedo
+                    * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
+                    * ray_color(scattered, background, world, depth - 1)
+                    / pdf
         } else {
             emitted
         }

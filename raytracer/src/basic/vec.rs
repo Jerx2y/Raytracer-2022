@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::f64::consts::PI;
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
@@ -57,14 +58,6 @@ impl Vec3 {
         random_in_unit_sphere().to_unit()
     }
 
-    // vec3 random_in_hemisphere(const vec3& normal) {
-    //     vec3 in_unit_sphere = random_in_unit_sphere();
-    //     if (dot(in_unit_sphere, normal) > 0.0) // In the same hemisphere as the normal
-    //         return in_unit_sphere;
-    //     else
-    //         return -in_unit_sphere;
-    // }
-
     pub fn near_zero(&self) -> bool {
         let eps = 1e-8;
         f64::abs(self.x) < eps && f64::abs(self.y) < eps && f64::abs(self.z) < eps
@@ -80,7 +73,7 @@ pub fn random_in_unit_sphere() -> Vec3 {
     }
 }
 
-/*
+#[allow(dead_code)]
 pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
     let in_unit_sphere = random_in_unit_sphere();
     if Vec3::dot(in_unit_sphere, normal) > 0. {
@@ -89,7 +82,6 @@ pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
         -in_unit_sphere
     }
 }
-*/
 
 pub fn random_in_unit_disk() -> Vec3 {
     let mut rng = rand::thread_rng();
@@ -99,6 +91,17 @@ pub fn random_in_unit_disk() -> Vec3 {
             return p;
         }
     }
+}
+
+pub fn random_cosine_direction() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    let r1: f64 = rng.gen();
+    let r2: f64 = rng.gen();
+    let z = (1. - r2).sqrt();
+    let phi = 2. * PI * r1;
+    let x = phi.cos() * r2.sqrt();
+    let y = phi.sin() * r2.sqrt();
+    Vec3::new(x, y, z)
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {

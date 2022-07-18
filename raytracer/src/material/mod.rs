@@ -1,16 +1,26 @@
-use std::sync::Arc;
+use std::{f64::consts::PI, sync::Arc};
 
 use rand::Rng;
 
 use crate::{
     basic::ray::Ray,
-    basic::vec::{random_in_unit_sphere, reflect, refract, Color, Point3, Vec3},
+    basic::{
+        onb::Onb,
+        vec::{
+            random_cosine_direction, random_in_unit_sphere, reflect, refract, Color, Point3, Vec3,
+        },
+    },
     hittable::HitRecord,
     texture::{SolidColor, Texture},
 };
 
 pub trait Material: Send + Sync {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
+    fn scatter(&self, _r_in: Ray, _rec: &HitRecord) -> Option<(Color, Ray, f64)> {
+        None
+    }
+    fn scattering_pdf(&self, _r_in: Ray, _rec: &HitRecord, _scattered: Ray) -> f64 {
+        0.
+    }
     fn emitted(&self, _u: f64, _v: f64, _p: Point3) -> Color {
         Color::new(0., 0., 0.)
     }
@@ -33,15 +43,38 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
+        /*
         let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal;
         }
-        Some((
-            self.albedo.value(rec.u, rec.v, rec.p),
-            Ray::new(rec.p, scatter_direction, r_in.tm),
-        ))
+        let scattered = Ray::new(rec.p, scatter_direction.to_unit(), r_in.tm); // XXX
+        let alb = self.albedo.value(rec.u, rec.v, rec.p);
+        let pdf = Vec3::dot(rec.normal, scattered.dir) / PI;
+        Some((alb, scattered, pdf))
+        */
+        /*
+        let direction = random_in_hemisphere(rec.normal);
+        let scattered = Ray::new(rec.p, direction.to_unit(), r_in.tm); // XXX
+        let alb = self.albedo.value(rec.u, rec.v, rec.p);
+        let pdf = 0.5 / PI;
+        Some((alb, scattered, pdf))
+        */
+        let uvw = Onb::build_from_w(rec.normal);
+        let direction = uvw.local_vec(random_cosine_direction());
+        let scattered = Ray::new(rec.p, direction.to_unit(), r_in.tm);
+        let alb = self.albedo.value(rec.u, rec.v, rec.p);
+        let pdf = Vec3::dot(uvw.w(), scattered.dir) / PI;
+        Some((alb, scattered, pdf))
+    }
+    fn scattering_pdf(&self, _r_in: Ray, rec: &HitRecord, scattered: Ray) -> f64 {
+        let cosine = Vec3::dot(rec.normal, scattered.dir.to_unit());
+        if cosine < 0. {
+            0.
+        } else {
+            cosine / PI
+        }
     }
 }
 
@@ -61,7 +94,7 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
         let reflected = reflect(r_in.dir.to_unit(), rec.normal);
         let scattered = Ray::new(
             rec.p,
@@ -69,7 +102,7 @@ impl Material for Metal {
             r_in.tm,
         );
         if Vec3::dot(scattered.dir, rec.normal) > 0. {
-            Some((self.albedo, scattered))
+            Some((self.albedo, scattered, 0.))
         } else {
             None
         }
@@ -96,7 +129,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
         let refraction_ratio = if rec.front_face {
             1. / self.ir
         } else {
@@ -119,7 +152,11 @@ impl Material for Dielectric {
             refract(unit_direction, rec.normal, refraction_ratio)
         };
 
-        Some((Color::new(1., 1., 1.), Ray::new(rec.p, direction, r_in.tm)))
+        Some((
+            Color::new(1., 1., 1.),
+            Ray::new(rec.p, direction, r_in.tm),
+            0.,
+        ))
     }
 }
 
@@ -140,7 +177,7 @@ impl DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn scatter(&self, _r_in: Ray, _rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, _r_in: Ray, _rec: &HitRecord) -> Option<(Color, Ray, f64)> {
         None
     }
     fn emitted(&self, u: f64, v: f64, p: Point3) -> Color {
@@ -164,10 +201,11 @@ impl Isotropic {
 }
 
 impl Material for Isotropic {
-    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<(Color, Ray, f64)> {
         Some((
             self.albedo.value(rec.u, rec.v, rec.p),
             Ray::new(rec.p, random_in_unit_sphere(), r_in.tm),
+            0.,
         ))
     }
 }
