@@ -18,7 +18,7 @@ use std::{
 use basic::camera::Camera;
 use basic::ray::Ray;
 use basic::vec::{Color, Point3, Vec3};
-use hittable::aarect::{XYRect, XZRect, YZRect};
+use hittable::{aarect::{XYRect, XZRect, YZRect}, FlipFace};
 use hittable::boxes::Boxes;
 use hittable::bvh::BvhNode;
 use hittable::constantmedium::ConstantMedium;
@@ -245,7 +245,7 @@ fn ray_color(r: Ray, background: Color, world: &BvhNode, depth: i32) -> Color {
         return Color::new(0., 0., 0.);
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
-        let emitted = rec.mat_ptr.emitted(rec.u, rec.v, rec.p);
+        let emitted = rec.mat_ptr.emitted(r, &rec, rec.u, rec.v, rec.p);
         if let Some((albedo, mut scattered, mut pdf)) = rec.mat_ptr.scatter(r, &rec) {
             let mut rng = rand::thread_rng();
             let on_light = Point3::new(rng.gen_range(213.0..343.0), 554., rng.gen_range(227.0..332.0));
@@ -463,7 +463,7 @@ fn cornell_box() -> HittableList {
 
     world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., green)));
     world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
-    world.add(Arc::new(XZRect::new(213., 343., 227., 332., 554., light)));
+    world.add(Arc::new(FlipFace::new(Arc::new(XZRect::new(213., 343., 227., 332., 554., light)))));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
     world.add(Arc::new(XZRect::new(
         0.,
