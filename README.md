@@ -9,6 +9,18 @@
 #### Final Scene
 ![output.jpg](https://s2.loli.net/2022/07/17/SJkvCEGfYmT6Dsb.jpg)
 
+### Bonus
+
+- [ ] Track 5: More Code Generation 在过程宏中，读取文件，直接从 yaml 或 JSON 文件（选择一种即可）生成场景对应的程序。
+
+- [ ] Track 8: Support for obj 支持载入obj文件并渲染。
+
+- [ ] Book3 
+
+- [ ] 光栅化 (Unity Shader入门精要)
+
+ 
+
 ## 课程介绍
 
 - 本项目为 2021-2022 学年暑期小学期课程

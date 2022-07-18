@@ -40,8 +40,8 @@ fn main() {
 
     // Image
     let path = "output/output.jpg";
-    const IMAGE_WIDTH: u32 = 800;
-    const IMAGE_HEIGHT: u32 = 800;
+    const IMAGE_WIDTH: u32 = 600;
+    const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
     const SAMPLES_PER_PIXEL: i32 = 100;
@@ -55,7 +55,7 @@ fn main() {
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(478., 278., -600.);
+    let lookfrom = Point3::new(278., 278., -800.);
     let lookat = Point3::new(278., 278., 0.);
     let background = Color::new(0., 0., 0.);
 
@@ -72,9 +72,9 @@ fn main() {
     // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
     // let main_world = BvhNode::new_list(&earth(), time0, time1);
     // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
-    // let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
+    let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
     // let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
-    let main_world = BvhNode::new_list(&final_scene(), time0, time1);
+    // let main_world = BvhNode::new_list(&final_scene(), time0, time1);
 
     // Camera
     let cam = Camera::new(
