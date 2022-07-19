@@ -18,7 +18,7 @@ use std::{
 use basic::{camera::Camera, pdf::Pdf};
 use basic::{pdf::HittablePdf, ray::Ray};
 use basic::{
-    pdf::{CosPdf, MixturePdf},
+    pdf::MixturePdf,
     vec::{Color, Point3, Vec3},
 };
 use hittable::boxes::Boxes;
@@ -267,18 +267,23 @@ fn ray_color(
     }
     if let Some(rec) = world.hit(r, 0.001, f64::MAX) {
         let emitted = rec.mat_ptr.emitted(r, &rec, rec.u, rec.v, rec.p);
-        if let Some((albedo, mut _scattered, mut _pdf)) = rec.mat_ptr.scatter(r, &rec) {
-            let p0 = Arc::new(HittablePdf::new(lights.clone(), rec.p));
-            let p1 = Arc::new(CosPdf::new(rec.normal));
-            let p = MixturePdf::new(p0, p1);
+        if let Some(srec) = rec.mat_ptr.scatter(r, &rec) {
+            if let Some(specular) = srec.specular_ray {
+                return srec.attenuation
+                    * ray_color(specular, background, world, lights, depth - 1);
+            }
 
+            let light_ptr = Arc::new(HittablePdf::new(lights.clone(), rec.p));
+            let p = MixturePdf::new(light_ptr, srec.pdf_ptr.unwrap());
             let scattered = Ray::new(rec.p, p.generate(), r.tm);
-            let pdf_val = p.value(scattered.dir);
-
+            let mut pdf_val = p.value(scattered.dir);
+            if pdf_val <= 0. {
+                pdf_val = 1.;
+            }
             emitted
-                + albedo
+                + srec.attenuation
                     * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
-                    * ray_color(scattered, background, world, lights, depth - 1)
+                    * ray_color(scattered, background, &world, lights, depth - 1)
                     / pdf_val
         } else {
             emitted
@@ -497,10 +502,11 @@ fn cornell_box() -> HittableList {
         white.clone(),
     )));
 
+    let aluminum = Arc::new(Metal::new(Color::new(0.8, 0.85, 0.88), 0.));
     let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(
         Point3::new(0., 0., 0.),
         Point3::new(165., 330., 165.),
-        white.clone(),
+        aluminum,
     ));
     box1 = Arc::new(RotateY::new(box1, 15.));
     box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
