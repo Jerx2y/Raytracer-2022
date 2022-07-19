@@ -3,15 +3,15 @@
 ## 进度
 ### Book1
 #### Final Scene
-![image21.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
+![output.jpg](https://s2.loli.net/2022/07/11/LAwbMrnKt8vNieS.jpg)
 
 ### Book2
 #### Final Scene
 ![output.jpg](https://s2.loli.net/2022/07/17/SJkvCEGfYmT6Dsb.jpg)
 
 ### Book3
-#### Now Scene
-![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+#### Final Scene
+![output.jpg](https://s2.loli.net/2022/07/19/RaBIqNVnbXc91E4.jpg)
 
 ### Bonus
 
