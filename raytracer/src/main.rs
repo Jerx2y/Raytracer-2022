@@ -50,7 +50,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 1000;
+    const SAMPLES_PER_PIXEL: i32 = 100;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -133,14 +133,20 @@ fn main() {
 
         // world
         let world = main_world.clone();
-        let lights = Arc::new(XZRect::new(
-            213.,
-            343.,
-            227.,
-            332.,
-            554.,
+        // let lights = Arc::new(XZRect::new(
+        //     213.,
+        //     343.,
+        //     227.,
+        //     332.,
+        //     554.,
+        //     Arc::new(Dielectric::new(0.)),
+        // ));
+        let lights = Arc::new(Sphere::new(
+            Point3::new(190., 90., 190.),
+            90.,
             Arc::new(Dielectric::new(0.)),
         ));
+
 
         //progress
         let mp = multiprogress.clone();
@@ -512,14 +518,21 @@ fn cornell_box() -> HittableList {
     box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
     world.add(box1);
 
-    let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(
-        Point3::new(0., 0., 0.),
-        Point3::new(165., 165., 165.),
-        white,
-    ));
-    box2 = Arc::new(RotateY::new(box2, -18.));
-    box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
-    world.add(box2);
+    let glass = Arc::new(Dielectric::new(1.5));
+    world.add(Arc::new(Sphere::new(
+        Point3::new(190., 90., 190.),
+        90.,
+        glass,
+    )));
+
+    // let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(
+    //     Point3::new(0., 0., 0.),
+    //     Point3::new(165., 165., 165.),
+    //     white,
+    // ));
+    // box2 = Arc::new(RotateY::new(box2, -18.));
+    // box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
+    // world.add(box2);
 
     world
 }

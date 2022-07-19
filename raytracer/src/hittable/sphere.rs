@@ -1,3 +1,4 @@
+use std::f64::INFINITY;
 use std::f64::consts::PI;
 use std::sync::Arc;
 
@@ -73,6 +74,16 @@ impl Hittable for Sphere {
             self.center - Vec3::new(self.radius, self.radius, self.radius),
             self.center + Vec3::new(self.radius, self.radius, self.radius),
         ))
+    }
+
+    fn pdf_value(&self, o: Point3, v: Vec3) -> f64 {
+        if let Some(rec) = self.hit(Ray::new(o, v, 0.), 0.001, INFINITY) {
+            let cos_max = (1. - self.radius*self.radius/(self.center-o).length_sqr()).sqrt();
+            let solid_angle = 2. * PI * (1. - cos_max);
+            1. / solid_angle
+        } else {
+            0.
+        }
     }
 }
 
