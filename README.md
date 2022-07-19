@@ -1,4 +1,5 @@
 # PPCA Raytracer 2022
+![banner](https://user-images.githubusercontent.com/4198311/89027545-461dd180-d35d-11ea-9972-7bf1b07f942d.png)
 
 ## 进度
 ### Book1
@@ -15,14 +16,13 @@
 
 ### Bonus
 
+- [x] Book3 
+
 - [ ] Track 5: More Code Generation 在过程宏中，读取文件，直接从 yaml 或 JSON 文件（选择一种即可）生成场景对应的程序。
 
 - [ ] Track 8: Support for obj 支持载入obj文件并渲染。
 
-- [ ] Book3 
-
 - [ ] 光栅化 (Unity Shader入门精要)
-
  
 
 ## 课程介绍
@@ -183,5 +183,3 @@
   * [yaml-rust](https://docs.rs/yaml-rust/0.4.4/yaml_rust/)
   * 通常来说，你并不需要使用到下面这个序列化/反序列化的包。
   * [serde](https://serde.rs)
-
-![banner](https://user-images.githubusercontent.com/4198311/89027545-461dd180-d35d-11ea-9972-7bf1b07f942d.png)
