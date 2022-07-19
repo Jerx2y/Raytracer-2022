@@ -1,4 +1,5 @@
 use rand::Rng;
+use std::f64::consts::PI;
 use std::fmt;
 use std::fmt::Display;
 use std::ops::{
@@ -90,6 +91,17 @@ pub fn random_in_unit_disk() -> Vec3 {
             return p;
         }
     }
+}
+
+pub fn random_to_sphere(radius: f64, dis_sqr: f64) -> Vec3 {
+    let mut rng = rand::thread_rng();
+    let r1: f64 = rng.gen();
+    let r2: f64 = rng.gen();
+    let z = 1. + r2 * ((1. - radius.powi(2) / dis_sqr).sqrt() - 1.);
+    let phi = 2. * PI * r1;
+    let x = phi.cos() * (1. - z.powi(2)).sqrt();
+    let y = phi.sin() * (1. - z.powi(2)).sqrt();
+    Vec3::new(x, y, z)
 }
 
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {

@@ -50,7 +50,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 600;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 1000;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -133,20 +133,21 @@ fn main() {
 
         // world
         let world = main_world.clone();
-        // let lights = Arc::new(XZRect::new(
-        //     213.,
-        //     343.,
-        //     227.,
-        //     332.,
-        //     554.,
-        //     Arc::new(Dielectric::new(0.)),
-        // ));
-        let lights = Arc::new(Sphere::new(
+        let mut lights = HittableList::default();
+        lights.add(Arc::new(XZRect::new(
+            213.,
+            343.,
+            227.,
+            332.,
+            554.,
+            Arc::new(Dielectric::new(0.)),
+        )));
+        lights.add(Arc::new(Sphere::new(
             Point3::new(190., 90., 190.),
             90.,
             Arc::new(Dielectric::new(0.)),
-        ));
-
+        )));
+        let lights = Arc::new(lights);
 
         //progress
         let mp = multiprogress.clone();
@@ -282,10 +283,7 @@ fn ray_color(
             let light_ptr = Arc::new(HittablePdf::new(lights.clone(), rec.p));
             let p = MixturePdf::new(light_ptr, srec.pdf_ptr.unwrap());
             let scattered = Ray::new(rec.p, p.generate(), r.tm);
-            let mut pdf_val = p.value(scattered.dir);
-            if pdf_val <= 0. {
-                pdf_val = 1.;
-            }
+            let pdf_val = p.value(scattered.dir);
             emitted
                 + srec.attenuation
                     * rec.mat_ptr.scattering_pdf(r, &rec, scattered)
@@ -300,22 +298,23 @@ fn ray_color(
 }
 
 fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
+    let mut r = pixel_color.x;
+    let mut g = pixel_color.y;
+    let mut b = pixel_color.z;
+    if r.is_nan() {
+        r = 0.
+    }
+    if g.is_nan() {
+        g = 0.
+    }
+    if b.is_nan() {
+        b = 0.
+    }
+
     [
-        ((pixel_color.x / samples_per_pixel as f64)
-            .sqrt()
-            .clamp(0.0, 0.999)
-            * 255.999)
-            .floor() as u8,
-        ((pixel_color.y / samples_per_pixel as f64)
-            .sqrt()
-            .clamp(0.0, 0.999)
-            * 255.999)
-            .floor() as u8,
-        ((pixel_color.z / samples_per_pixel as f64)
-            .sqrt()
-            .clamp(0.0, 0.999)
-            * 255.999)
-            .floor() as u8,
+        ((r / samples_per_pixel as f64).sqrt().clamp(0.0, 0.999) * 255.999).floor() as u8,
+        ((g / samples_per_pixel as f64).sqrt().clamp(0.0, 0.999) * 255.999).floor() as u8,
+        ((b / samples_per_pixel as f64).sqrt().clamp(0.0, 0.999) * 255.999).floor() as u8,
     ]
 }
 
@@ -508,11 +507,10 @@ fn cornell_box() -> HittableList {
         white.clone(),
     )));
 
-    let aluminum = Arc::new(Metal::new(Color::new(0.8, 0.85, 0.88), 0.));
     let mut box1: Arc<dyn Hittable> = Arc::new(Boxes::new(
         Point3::new(0., 0., 0.),
         Point3::new(165., 330., 165.),
-        aluminum,
+        white,
     ));
     box1 = Arc::new(RotateY::new(box1, 15.));
     box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));

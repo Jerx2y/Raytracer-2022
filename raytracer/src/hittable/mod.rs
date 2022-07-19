@@ -6,6 +6,8 @@ pub mod sphere;
 
 use std::sync::Arc;
 
+use rand::Rng;
+
 use super::basic::ray::Ray;
 use super::basic::vec::{Point3, Vec3};
 use super::hittable::bvh::aabb::AABB;
@@ -113,6 +115,18 @@ impl Hittable for HittableList {
         }
 
         Some(output_box)
+    }
+    fn pdf_value(&self, o: Point3, v: Vec3) -> f64 {
+        let len = self.objects.len();
+        let mut sum = 0.;
+        for i in 0..len {
+            sum += self.objects[i].pdf_value(o, v);
+        }
+        sum / len as f64
+    }
+    fn random(&self, o: Point3) -> Vec3 {
+        let target = rand::thread_rng().gen_range(0..self.objects.len());
+        self.objects[target].random(o)
     }
 }
 

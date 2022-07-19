@@ -109,7 +109,7 @@
 了解完 Rust 语法，就可以开始学习和动手实现 ray tracer 了！[***Ray Tracing in One Weekend - The Book Series***](https://raytracing.github.io) 是一套十分经典的教程，从原理和实践角度详细地阐释了 ray tracing 的基础知识，本项目便是基于该教程展开：
 
 - [x] 学习 Ray Tracing book 1，使用 Rust 语言实现该部分程序，并渲染成果图
-- [ ] 完成 Ray Tracing book 2，要求同上
+- [x] 完成 Ray Tracing book 2，要求同上
 - [x] 💠实现多线程渲染
 - [ ] code review
   - book 1 & 2 最终成果图
@@ -119,7 +119,7 @@
 
 通过 book 1 & 2 的学习，你已经实现了一个基于路径追踪算法的光线追踪渲染器，这个渲染器的逻辑十分简单而显然。接下来，你将接触到真正的光线追踪知识，学习一个十分基础而重要的算法——蒙特卡洛算法。在 book 3 中详细阐述了蒙特卡洛算法以及它在我们的渲染器中的应用。
 
-- [ ] 完成 Ray Tracing book 3
+- [x] 完成 Ray Tracing book 3
 - [ ] code review
   - book 3 最终成果图
   - 理解蒙特卡洛算法及相关概念
