@@ -24,28 +24,35 @@ pub trait Material: Send + Sync {
     }
 }
 
-pub struct Lambertian {
-    albedo: Arc<dyn Texture>,
+#[derive(Clone)]
+pub struct Lambertian<T>
+where T: Texture + Clone {
+    albedo: T,
 }
 
-impl Lambertian {
+impl<T: Texture + Clone> Lambertian<T> {
     #[allow(dead_code)]
-    pub fn new(a: Color) -> Self {
+    pub fn new_arc(albedo: T) -> Self {
         Self {
-            albedo: Arc::new(SolidColor::new(a)),
+            albedo
         }
     }
-    pub fn new_arc(albedo: Arc<dyn Texture>) -> Self {
-        Self { albedo }
+}
+
+impl Lambertian<SolidColor> {
+    pub fn new(a: Color) -> Self {
+        Self {
+            albedo: SolidColor::new(a),
+        }
     }
 }
 
-impl Material for Lambertian {
+impl<T: Texture + Clone> Material for Lambertian<T> {
     fn scatter(&self, _r_in: Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         Some(ScatterRecord::new(
             None,
             self.albedo.value(rec.u, rec.v, rec.p),
-            Some(Arc::new(CosPdf::new(rec.normal))),
+            Some(CosPdf::new(rec.normal)),
         ))
     }
     fn scattering_pdf(&self, _r_in: Ray, rec: &HitRecord, scattered: Ray) -> f64 {
@@ -58,6 +65,7 @@ impl Material for Lambertian {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Metal {
     albedo: Color,
     fuzz: f64,
@@ -88,6 +96,7 @@ impl Material for Metal {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Dielectric {
     pub ir: f64,
 }
@@ -138,23 +147,28 @@ impl Material for Dielectric {
     }
 }
 
-pub struct DiffuseLight {
-    emit: Arc<dyn Texture>,
+#[derive(Clone)]
+pub struct DiffuseLight<T>
+where T: Texture + Clone {
+    emit: T,
 }
 
-impl DiffuseLight {
-    pub fn new(c: Color) -> Self {
-        Self {
-            emit: Arc::new(SolidColor::new(c)),
-        }
-    }
+impl<T: Texture + Clone> DiffuseLight<T> {
     #[allow(dead_code)]
-    pub fn new_arc(emit: Arc<dyn Texture>) -> Self {
+    pub fn new_arc(emit: T) -> Self {
         Self { emit }
     }
 }
 
-impl Material for DiffuseLight {
+impl DiffuseLight<SolidColor> {
+    pub fn new(c: Color) -> Self {
+        Self {
+            emit: SolidColor::new(c),
+        }
+    }
+}
+
+impl<T: Texture + Clone> Material for DiffuseLight<T> {
     fn emitted(&self, _r_in: Ray, rec: &HitRecord, u: f64, v: f64, p: Point3) -> Color {
         if rec.front_face {
             self.emit.value(u, v, p)
@@ -164,23 +178,28 @@ impl Material for DiffuseLight {
     }
 }
 
-pub struct Isotropic {
+#[derive(Clone, Copy)]
+pub struct Isotropic<T>
+where T: Texture + Clone + Copy {
     #[allow(dead_code)]
-    albedo: Arc<dyn Texture>,
+    albedo: T,
 }
 
-impl Isotropic {
-    pub fn new(c: Color) -> Self {
-        Self {
-            albedo: Arc::new(SolidColor::new(c)),
-        }
-    }
-    pub fn new_arc(a: Arc<dyn Texture>) -> Self {
+impl<T: Texture + Clone + Copy> Isotropic<T> {
+    pub fn new_arc(a: T) -> Self {
         Self { albedo: a }
     }
 }
 
-impl Material for Isotropic {
+impl Isotropic<SolidColor> {
+    pub fn new(c: Color) -> Self {
+        Self {
+            albedo: SolidColor::new(c),
+        }
+    }
+}
+
+impl<T: Texture + Clone + Copy> Material for Isotropic<T> {
     fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         Some(ScatterRecord::new(
             Some(Ray::new(rec.p, random_in_unit_sphere(), r_in.tm)),
@@ -190,17 +209,18 @@ impl Material for Isotropic {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct ScatterRecord {
     pub specular_ray: Option<Ray>,
     pub attenuation: Color,
-    pub pdf_ptr: Option<Arc<dyn Pdf>>,
+    pub pdf_ptr: Option<CosPdf>,
 }
 
 impl ScatterRecord {
     pub fn new(
         specular_ray: Option<Ray>,
         attenuation: Color,
-        pdf_ptr: Option<Arc<dyn Pdf>>,
+        pdf_ptr: Option<CosPdf>,
     ) -> Self {
         Self {
             specular_ray,

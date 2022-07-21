@@ -1,4 +1,4 @@
-use std::{f64::INFINITY, sync::Arc};
+use std::{f64::INFINITY};
 
 use rand::Rng;
 
@@ -10,17 +10,18 @@ use crate::{
     material::Material,
 };
 
-pub struct XYRect {
+pub struct XYRect<M> 
+where M: Material {
     x0: f64,
     x1: f64,
     y0: f64,
     y1: f64,
     k: f64,
-    mp: Arc<dyn Material>,
+    mp: M,
 }
 
-impl XYRect {
-    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
+impl<M: Material> XYRect<M> {
+    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, mp: M) -> Self {
         Self {
             x0,
             x1,
@@ -32,7 +33,7 @@ impl XYRect {
     }
 }
 
-impl Hittable for XYRect {
+impl<M: Material> Hittable for XYRect<M> {
     fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         Some(AABB::new(
             Point3::new(self.x0, self.y0, self.k - 0.0001),
@@ -59,7 +60,7 @@ impl Hittable for XYRect {
             (x - self.x0) / (self.x1 - self.x0),
             (y - self.y0) / (self.y1 - self.y0),
             true,
-            self.mp.clone(),
+            &self.mp,
         );
 
         rec.set_face_normal(r, outward_normal);
@@ -68,17 +69,18 @@ impl Hittable for XYRect {
     }
 }
 
-pub struct XZRect {
+pub struct XZRect<M>
+where M: Material {
     x0: f64,
     x1: f64,
     z0: f64,
     z1: f64,
     k: f64,
-    mp: Arc<dyn Material>,
+    mp: M,
 }
 
-impl XZRect {
-    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
+impl<M: Material> XZRect<M> {
+    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, mp: M) -> Self {
         Self {
             x0,
             x1,
@@ -90,7 +92,7 @@ impl XZRect {
     }
 }
 
-impl Hittable for XZRect {
+impl<M: Material> Hittable for XZRect<M> {
     fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         Some(AABB::new(
             Point3::new(self.x0, self.k - 0.0001, self.z0),
@@ -117,7 +119,7 @@ impl Hittable for XZRect {
             (x - self.x0) / (self.x1 - self.x0),
             (z - self.z0) / (self.z1 - self.z0),
             true,
-            self.mp.clone(),
+            &self.mp,
         );
 
         rec.set_face_normal(r, outward_normal);
@@ -147,17 +149,18 @@ impl Hittable for XZRect {
     }
 }
 
-pub struct YZRect {
+pub struct YZRect<M>
+where M: Material {
     y0: f64,
     y1: f64,
     z0: f64,
     z1: f64,
     k: f64,
-    mp: Arc<dyn Material>,
+    mp: M,
 }
 
-impl YZRect {
-    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, mp: Arc<dyn Material>) -> Self {
+impl<M: Material> YZRect<M> {
+    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, mp: M) -> Self {
         Self {
             y0,
             y1,
@@ -169,7 +172,7 @@ impl YZRect {
     }
 }
 
-impl Hittable for YZRect {
+impl<M: Material> Hittable for YZRect<M> {
     fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         Some(AABB::new(
             Point3::new(self.k - 0.0001, self.y0, self.z0),
@@ -196,7 +199,7 @@ impl Hittable for YZRect {
             (y - self.y0) / (self.y1 - self.y0),
             (z - self.z0) / (self.z1 - self.z0),
             true,
-            self.mp.clone(),
+            &self.mp,
         );
 
         rec.set_face_normal(r, outward_normal);

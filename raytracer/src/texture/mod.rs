@@ -1,7 +1,5 @@
 pub mod perlin;
 
-use std::sync::Arc;
-
 use image::GenericImageView;
 
 use crate::basic::vec::{Color, Point3};
@@ -11,6 +9,7 @@ pub trait Texture: Send + Sync {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color;
 }
 
+#[derive(Clone, Copy)]
 pub struct SolidColor {
     color_value: Color,
 }
@@ -27,22 +26,24 @@ impl Texture for SolidColor {
     }
 }
 
-pub struct CheckerTexture {
-    odd: Arc<dyn Texture>,
-    even: Arc<dyn Texture>,
+#[derive(Clone, Copy)]
+pub struct CheckerTexture<TO, TE>
+where TO: Texture + Clone + Copy, TE: Texture + Clone + Copy {
+    odd: TO,
+    even: TE,
 }
 
-impl CheckerTexture {
+impl CheckerTexture<SolidColor, SolidColor> {
     #[allow(dead_code)]
     pub fn new(c1: Color, c2: Color) -> Self {
         Self {
-            odd: Arc::new(SolidColor::new(c1)),
-            even: Arc::new(SolidColor::new(c2)),
+            odd: SolidColor::new(c1),
+            even: SolidColor::new(c2),
         }
     }
 }
 
-impl Texture for CheckerTexture {
+impl<TO: Texture + Clone + Copy, TE: Texture + Clone + Copy> Texture for CheckerTexture<TO, TE> {
     fn value(&self, u: f64, v: f64, p: Point3) -> Color {
         let sines = (p.x * 10.).sin() * (p.y * 10.).sin() * (p.z * 10.).sin();
         if sines < 0. {
@@ -53,6 +54,7 @@ impl Texture for CheckerTexture {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct NoiseTexture {
     noise: Perlin,
     scale: f64,
@@ -71,6 +73,7 @@ impl Texture for NoiseTexture {
     }
 }
 
+#[derive(Clone)]
 pub struct ImageTexture {
     width: u32,
     height: u32,

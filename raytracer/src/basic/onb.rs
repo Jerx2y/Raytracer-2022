@@ -1,5 +1,6 @@
 use super::vec::Vec3;
 
+#[derive(Clone, Copy)]
 pub struct Onb {
     axis: [Vec3; 3],
 }

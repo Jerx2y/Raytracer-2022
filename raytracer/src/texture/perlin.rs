@@ -4,6 +4,7 @@ use crate::basic::vec::{Point3, Vec3};
 
 const POINT_COUNT: usize = 256;
 
+#[derive(Clone, Copy)]
 pub struct Perlin {
     randvec: [Vec3; POINT_COUNT],
     perm_x: [usize; POINT_COUNT],

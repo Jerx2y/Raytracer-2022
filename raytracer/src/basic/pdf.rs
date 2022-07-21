@@ -1,4 +1,4 @@
-use std::{f64::consts::PI, sync::Arc};
+use std::{f64::consts::PI};
 
 use rand::Rng;
 
@@ -25,6 +25,7 @@ pub trait Pdf {
     fn generate(&self) -> Vec3;
 }
 
+#[derive(Clone, Copy)]
 pub struct CosPdf {
     uvw: Onb,
 }
@@ -52,18 +53,19 @@ impl Pdf for CosPdf {
     }
 }
 
-pub struct HittablePdf {
+pub struct HittablePdf<'a, H>
+where H: Hittable {
     o: Point3,
-    ptr: Arc<dyn Hittable>,
+    ptr: &'a H,
 }
 
-impl HittablePdf {
-    pub fn new(ptr: Arc<dyn Hittable>, o: Point3) -> Self {
+impl<'a, H: Hittable> HittablePdf<'a, H> {
+    pub fn new(ptr: &'a H, o: Point3) -> Self {
         Self { o, ptr }
     }
 }
 
-impl Pdf for HittablePdf {
+impl<'a, H: Hittable> Pdf for HittablePdf<'a, H> {
     fn generate(&self) -> Vec3 {
         self.ptr.random(self.o)
     }
@@ -72,18 +74,19 @@ impl Pdf for HittablePdf {
     }
 }
 
-pub struct MixturePdf {
-    p0: Arc<dyn Pdf>,
-    p1: Arc<dyn Pdf>,
+pub struct MixturePdf<P0, P1>
+where P0: Pdf, P1: Pdf {
+    p0: P0,
+    p1: P1,
 }
 
-impl MixturePdf {
-    pub fn new(p0: Arc<dyn Pdf>, p1: Arc<dyn Pdf>) -> Self {
+impl<P0: Pdf, P1: Pdf> MixturePdf<P0, P1> {
+    pub fn new(p0: P0, p1: P1) -> Self {
         Self { p0, p1 }
     }
 }
 
-impl Pdf for MixturePdf {
+impl<P0: Pdf, P1: Pdf> Pdf for MixturePdf<P0, P1> {
     fn generate(&self) -> Vec3 {
         if rand::thread_rng().gen_range(0.0..1.0) < 0.5 {
             self.p0.generate()

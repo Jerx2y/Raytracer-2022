@@ -1,4 +1,4 @@
-use std::{f64::consts::E, sync::Arc};
+use std::{f64::consts::E};
 
 use rand::Rng;
 
@@ -7,35 +7,39 @@ use crate::{
     basic::vec::{Color, Vec3},
     hittable::bvh::aabb::AABB,
     hittable::{HitRecord, Hittable},
-    material::{Isotropic, Material},
-    texture::Texture,
+    material::{Isotropic},
+    texture::{Texture, SolidColor},
 };
 
-pub struct ConstantMedium {
-    boundary: Arc<dyn Hittable>,
-    phase_function: Arc<dyn Material>,
+pub struct ConstantMedium <H, T>
+where H: Hittable, T: Texture + Copy + Clone {
+    boundary: H,
+    phase_function: Isotropic<T>,
     neg_inv_density: f64,
 }
 
-impl ConstantMedium {
+impl<H: Hittable, T: Texture + Copy + Clone> ConstantMedium <H, T> {
     #[allow(dead_code)]
-    pub fn new_arc(b: Arc<dyn Hittable>, d: f64, a: Arc<dyn Texture>) -> Self {
+    pub fn new_arc(b: H, d: f64, a: T) -> Self {
         Self {
             boundary: b,
             neg_inv_density: -1. / d,
-            phase_function: Arc::new(Isotropic::new_arc(a)),
-        }
-    }
-    pub fn new(b: Arc<dyn Hittable>, d: f64, c: Color) -> Self {
-        Self {
-            boundary: b,
-            neg_inv_density: -1. / d,
-            phase_function: Arc::new(Isotropic::new(c)),
+            phase_function: Isotropic::new_arc(a),
         }
     }
 }
 
-impl Hittable for ConstantMedium {
+impl<H: Hittable> ConstantMedium<H, SolidColor> {
+    pub fn new(b: H, d: f64, c: Color) -> Self {
+        Self {
+            boundary: b,
+            neg_inv_density: -1. / d,
+            phase_function: Isotropic::new(c),
+        }
+    }
+}
+
+impl<H: Hittable, T: Texture + Copy + Clone> Hittable for ConstantMedium<H, T> {
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         self.boundary.bounding_box(time0, time1)
     }
@@ -63,7 +67,7 @@ impl Hittable for ConstantMedium {
                     0.,
                     0.,
                     true,
-                    self.phase_function.clone(),
+                    &self.phase_function,
                 );
 
                 Some(rec)

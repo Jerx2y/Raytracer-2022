@@ -13,17 +13,17 @@ use super::basic::vec::{Point3, Vec3};
 use super::hittable::bvh::aabb::AABB;
 use super::material::Material;
 
-pub struct HitRecord {
+pub struct HitRecord <'a> {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
     pub u: f64,
     pub v: f64,
     pub front_face: bool,
-    pub mat_ptr: Arc<dyn Material>,
+    pub mat_ptr: &'a dyn Material,
 }
 
-impl HitRecord {
+impl<'a> HitRecord <'a> {
     pub fn new(
         p: Point3,
         normal: Vec3,
@@ -31,7 +31,7 @@ impl HitRecord {
         u: f64,
         v: f64,
         front_face: bool,
-        mat_ptr: Arc<dyn Material>,
+        mat_ptr: &'a dyn Material,
     ) -> Self {
         Self {
             p,
@@ -130,13 +130,14 @@ impl Hittable for HittableList {
     }
 }
 
-pub struct Translate {
-    ptr: Arc<dyn Hittable>,
+pub struct Translate <H>
+where H: Hittable {
+    ptr: H,
     offset: Vec3,
 }
 
-impl Translate {
-    pub fn new(p: Arc<dyn Hittable>, displacement: Vec3) -> Self {
+impl<H: Hittable> Translate<H> {
+    pub fn new(p: H, displacement: Vec3) -> Self {
         Self {
             ptr: p,
             offset: displacement,
@@ -144,7 +145,7 @@ impl Translate {
     }
 }
 
-impl Hittable for Translate {
+impl<H: Hittable> Hittable for Translate<H> {
     #[allow(clippy::manual_map)]
     fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
         if let Some(output_box) = self.ptr.bounding_box(time0, time1) {
@@ -169,15 +170,16 @@ impl Hittable for Translate {
     }
 }
 
-pub struct RotateY {
-    ptr: Arc<dyn Hittable>,
+pub struct RotateY<H>
+where H: Hittable {
+    ptr: H,
     sin_theta: f64,
     cos_theta: f64,
     aabbox: Option<AABB>,
 }
 
-impl RotateY {
-    pub fn new(p: Arc<dyn Hittable>, angle: f64) -> Self {
+impl<H: Hittable> RotateY<H> {
+    pub fn new(p: H, angle: f64) -> Self {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
@@ -220,7 +222,7 @@ impl RotateY {
     }
 }
 
-impl Hittable for RotateY {
+impl<H: Hittable> Hittable for RotateY<H> {
     fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         self.aabbox
     }
@@ -256,17 +258,18 @@ impl Hittable for RotateY {
     }
 }
 
-pub struct FlipFace {
-    ptr: Arc<dyn Hittable>,
+pub struct FlipFace<H>
+where H: Hittable {
+    ptr: H,
 }
 
-impl FlipFace {
-    pub fn new(ptr: Arc<dyn Hittable>) -> Self {
+impl<H: Hittable> FlipFace<H> {
+    pub fn new(ptr: H) -> Self {
         Self { ptr }
     }
 }
 
-impl Hittable for FlipFace {
+impl<H: Hittable> Hittable for FlipFace<H> {
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         if let Some(mut rec) = self.ptr.hit(r, t_min, t_max) {
             rec.front_face = !rec.front_face;

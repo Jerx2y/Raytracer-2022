@@ -1,6 +1,5 @@
 use std::f64::consts::PI;
 use std::f64::INFINITY;
-use std::sync::Arc;
 
 use crate::basic::onb::Onb;
 use crate::basic::ray::Ray;
@@ -9,14 +8,16 @@ use crate::hittable::bvh::aabb::AABB;
 use crate::hittable::{HitRecord, Hittable};
 use crate::material::Material;
 
-pub struct Sphere {
+#[derive(Clone)]
+pub struct Sphere<M>
+where M: Material + Clone {
     pub center: Point3,
     pub radius: f64,
-    pub mat_ptr: Arc<dyn Material>,
+    pub mat_ptr: M,
 }
 
-impl Sphere {
-    pub fn new(center: Point3, radius: f64, mat_ptr: Arc<dyn Material>) -> Self {
+impl<M: Material + Clone> Sphere <M> {
+    pub fn new(center: Point3, radius: f64, mat_ptr: M) -> Self {
         Self {
             center,
             radius,
@@ -31,7 +32,7 @@ impl Sphere {
     }
 }
 
-impl Hittable for Sphere {
+impl<M: Material + Clone> Hittable for Sphere<M> {
     #[allow(clippy::many_single_char_names)]
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.orig - self.center;
@@ -62,7 +63,7 @@ impl Hittable for Sphere {
             u,
             v,
             false,
-            self.mat_ptr.clone(),
+            &self.mat_ptr,
         );
 
         rec.set_face_normal(r, outward_normal);
@@ -95,15 +96,16 @@ impl Hittable for Sphere {
     }
 }
 
-pub struct MovingSphere {
+pub struct MovingSphere <M>
+where M: Material {
     pub center0: Point3,
     pub center1: Point3,
     pub time0: f64,
     pub time1: f64,
     pub radius: f64,
-    pub mat_ptr: Arc<dyn Material>,
+    pub mat_ptr: M,
 }
-impl MovingSphere {
+impl<M: Material> MovingSphere <M> {
     #[allow(dead_code)]
     pub fn new(
         center0: Point3,
@@ -111,7 +113,7 @@ impl MovingSphere {
         time0: f64,
         time1: f64,
         radius: f64,
-        mat_ptr: Arc<dyn Material>,
+        mat_ptr: M,
     ) -> Self {
         Self {
             center0,
@@ -135,7 +137,7 @@ impl MovingSphere {
     }
 }
 
-impl Hittable for MovingSphere {
+impl <M: Material> Hittable for MovingSphere <M> {
     #[allow(clippy::many_single_char_names)]
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.orig - self.center(r.tm);
@@ -166,7 +168,7 @@ impl Hittable for MovingSphere {
             u,
             v,
             false,
-            self.mat_ptr.clone(),
+            &self.mat_ptr,
         );
 
         rec.set_face_normal(r, outward_normal);
