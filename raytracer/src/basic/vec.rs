@@ -54,10 +54,12 @@ impl Vec3 {
         }
     }
 
+    #[allow(dead_code)]
     pub fn random_unit_vector() -> Self {
         random_in_unit_sphere().to_unit()
     }
 
+    #[allow(dead_code)]
     pub fn near_zero(&self) -> bool {
         let eps = 1e-8;
         f64::abs(self.x) < eps && f64::abs(self.y) < eps && f64::abs(self.z) < eps

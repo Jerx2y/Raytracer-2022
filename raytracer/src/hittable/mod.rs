@@ -289,3 +289,42 @@ impl<H: Hittable> Hittable for FlipFace<H> {
         self.ptr.bounding_box(time0, time1)
     }
 }
+
+pub struct Zoom<H>
+where
+    H: Hittable,
+{
+    rate: f64,
+    ptr: H,
+}
+
+impl<H: Hittable> Zoom<H> {
+    pub fn new(p: H, rate: f64) -> Self {
+        Self { ptr: p, rate }
+    }
+}
+
+impl<H: Hittable> Hittable for Zoom<H> {
+    #[allow(clippy::manual_map)]
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+        if let Some(output_box) = self.ptr.bounding_box(time0, time1) {
+            Some(AABB::new(
+                output_box.min * self.rate,
+                output_box.max * self.rate,
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let moved_r = Ray::new(r.orig / self.rate, r.dir, r.tm);
+        if let Some(mut rec) = self.ptr.hit(moved_r, t_min, t_max) {
+            rec.p *= self.rate;
+            rec.set_face_normal(moved_r, rec.normal);
+            Some(rec)
+        } else {
+            None
+        }
+    }
+}
