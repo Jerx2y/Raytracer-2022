@@ -1,11 +1,11 @@
-use std::{f64::consts::PI, sync::Arc};
+use std::f64::consts::PI;
 
 use rand::Rng;
 
 use crate::{
     basic::ray::Ray,
     basic::{
-        pdf::{CosPdf, Pdf},
+        pdf::CosPdf,
         vec::{random_in_unit_sphere, reflect, refract, Color, Point3, Vec3},
     },
     hittable::HitRecord,
@@ -26,16 +26,16 @@ pub trait Material: Send + Sync {
 
 #[derive(Clone)]
 pub struct Lambertian<T>
-where T: Texture + Clone {
+where
+    T: Texture + Clone,
+{
     albedo: T,
 }
 
 impl<T: Texture + Clone> Lambertian<T> {
     #[allow(dead_code)]
     pub fn new_arc(albedo: T) -> Self {
-        Self {
-            albedo
-        }
+        Self { albedo }
     }
 }
 
@@ -149,7 +149,9 @@ impl Material for Dielectric {
 
 #[derive(Clone)]
 pub struct DiffuseLight<T>
-where T: Texture + Clone {
+where
+    T: Texture + Clone,
+{
     emit: T,
 }
 
@@ -180,7 +182,9 @@ impl<T: Texture + Clone> Material for DiffuseLight<T> {
 
 #[derive(Clone, Copy)]
 pub struct Isotropic<T>
-where T: Texture + Clone + Copy {
+where
+    T: Texture + Clone + Copy,
+{
     #[allow(dead_code)]
     albedo: T,
 }
@@ -217,11 +221,7 @@ pub struct ScatterRecord {
 }
 
 impl ScatterRecord {
-    pub fn new(
-        specular_ray: Option<Ray>,
-        attenuation: Color,
-        pdf_ptr: Option<CosPdf>,
-    ) -> Self {
+    pub fn new(specular_ray: Option<Ray>, attenuation: Color, pdf_ptr: Option<CosPdf>) -> Self {
         Self {
             specular_ray,
             attenuation,

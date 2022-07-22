@@ -3,6 +3,7 @@ pub mod boxes;
 pub mod bvh;
 pub mod constantmedium;
 pub mod sphere;
+pub mod triangle;
 
 use std::sync::Arc;
 
@@ -13,7 +14,7 @@ use super::basic::vec::{Point3, Vec3};
 use super::hittable::bvh::aabb::AABB;
 use super::material::Material;
 
-pub struct HitRecord <'a> {
+pub struct HitRecord<'a> {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
@@ -23,7 +24,7 @@ pub struct HitRecord <'a> {
     pub mat_ptr: &'a dyn Material,
 }
 
-impl<'a> HitRecord <'a> {
+impl<'a> HitRecord<'a> {
     pub fn new(
         p: Point3,
         normal: Vec3,
@@ -130,8 +131,10 @@ impl Hittable for HittableList {
     }
 }
 
-pub struct Translate <H>
-where H: Hittable {
+pub struct Translate<H>
+where
+    H: Hittable,
+{
     ptr: H,
     offset: Vec3,
 }
@@ -171,7 +174,9 @@ impl<H: Hittable> Hittable for Translate<H> {
 }
 
 pub struct RotateY<H>
-where H: Hittable {
+where
+    H: Hittable,
+{
     ptr: H,
     sin_theta: f64,
     cos_theta: f64,
@@ -259,7 +264,9 @@ impl<H: Hittable> Hittable for RotateY<H> {
 }
 
 pub struct FlipFace<H>
-where H: Hittable {
+where
+    H: Hittable,
+{
     ptr: H,
 }
 

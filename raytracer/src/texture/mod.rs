@@ -28,7 +28,10 @@ impl Texture for SolidColor {
 
 #[derive(Clone, Copy)]
 pub struct CheckerTexture<TO, TE>
-where TO: Texture + Clone + Copy, TE: Texture + Clone + Copy {
+where
+    TO: Texture + Clone + Copy,
+    TE: Texture + Clone + Copy,
+{
     odd: TO,
     even: TE,
 }

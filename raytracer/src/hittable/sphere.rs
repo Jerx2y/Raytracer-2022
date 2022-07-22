@@ -10,13 +10,15 @@ use crate::material::Material;
 
 #[derive(Clone)]
 pub struct Sphere<M>
-where M: Material + Clone {
+where
+    M: Material + Clone,
+{
     pub center: Point3,
     pub radius: f64,
     pub mat_ptr: M,
 }
 
-impl<M: Material + Clone> Sphere <M> {
+impl<M: Material + Clone> Sphere<M> {
     pub fn new(center: Point3, radius: f64, mat_ptr: M) -> Self {
         Self {
             center,
@@ -56,15 +58,7 @@ impl<M: Material + Clone> Hittable for Sphere<M> {
 
         let outward_normal = (r.at(root) - self.center) / self.radius;
         let (u, v) = self.get_sphere_uv(outward_normal);
-        let mut rec = HitRecord::new(
-            r.at(root),
-            outward_normal,
-            root,
-            u,
-            v,
-            false,
-            &self.mat_ptr,
-        );
+        let mut rec = HitRecord::new(r.at(root), outward_normal, root, u, v, false, &self.mat_ptr);
 
         rec.set_face_normal(r, outward_normal);
 
@@ -96,8 +90,10 @@ impl<M: Material + Clone> Hittable for Sphere<M> {
     }
 }
 
-pub struct MovingSphere <M>
-where M: Material {
+pub struct MovingSphere<M>
+where
+    M: Material,
+{
     pub center0: Point3,
     pub center1: Point3,
     pub time0: f64,
@@ -105,7 +101,7 @@ where M: Material {
     pub radius: f64,
     pub mat_ptr: M,
 }
-impl<M: Material> MovingSphere <M> {
+impl<M: Material> MovingSphere<M> {
     #[allow(dead_code)]
     pub fn new(
         center0: Point3,
@@ -137,7 +133,7 @@ impl<M: Material> MovingSphere <M> {
     }
 }
 
-impl <M: Material> Hittable for MovingSphere <M> {
+impl<M: Material> Hittable for MovingSphere<M> {
     #[allow(clippy::many_single_char_names)]
     fn hit(&self, r: Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.orig - self.center(r.tm);
@@ -161,15 +157,7 @@ impl <M: Material> Hittable for MovingSphere <M> {
 
         let outward_normal = (r.at(root) - self.center(r.tm)) / self.radius;
         let (u, v) = self.get_sphere_uv(outward_normal);
-        let mut rec = HitRecord::new(
-            r.at(root),
-            outward_normal,
-            root,
-            u,
-            v,
-            false,
-            &self.mat_ptr,
-        );
+        let mut rec = HitRecord::new(r.at(root), outward_normal, root, u, v, false, &self.mat_ptr);
 
         rec.set_face_normal(r, outward_normal);
 

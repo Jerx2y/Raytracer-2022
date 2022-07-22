@@ -1,4 +1,4 @@
-use std::{f64::consts::E};
+use std::f64::consts::E;
 
 use rand::Rng;
 
@@ -7,18 +7,21 @@ use crate::{
     basic::vec::{Color, Vec3},
     hittable::bvh::aabb::AABB,
     hittable::{HitRecord, Hittable},
-    material::{Isotropic},
-    texture::{Texture, SolidColor},
+    material::Isotropic,
+    texture::{SolidColor, Texture},
 };
 
-pub struct ConstantMedium <H, T>
-where H: Hittable, T: Texture + Copy + Clone {
+pub struct ConstantMedium<H, T>
+where
+    H: Hittable,
+    T: Texture + Copy + Clone,
+{
     boundary: H,
     phase_function: Isotropic<T>,
     neg_inv_density: f64,
 }
 
-impl<H: Hittable, T: Texture + Copy + Clone> ConstantMedium <H, T> {
+impl<H: Hittable, T: Texture + Copy + Clone> ConstantMedium<H, T> {
     #[allow(dead_code)]
     pub fn new_arc(b: H, d: f64, a: T) -> Self {
         Self {

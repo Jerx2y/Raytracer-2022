@@ -1,4 +1,4 @@
-use std::{f64::INFINITY};
+use std::f64::INFINITY;
 
 use rand::Rng;
 
@@ -10,8 +10,10 @@ use crate::{
     material::Material,
 };
 
-pub struct XYRect<M> 
-where M: Material {
+pub struct XYRect<M>
+where
+    M: Material,
+{
     x0: f64,
     x1: f64,
     y0: f64,
@@ -70,7 +72,9 @@ impl<M: Material> Hittable for XYRect<M> {
 }
 
 pub struct XZRect<M>
-where M: Material {
+where
+    M: Material,
+{
     x0: f64,
     x1: f64,
     z0: f64,
@@ -150,7 +154,9 @@ impl<M: Material> Hittable for XZRect<M> {
 }
 
 pub struct YZRect<M>
-where M: Material {
+where
+    M: Material,
+{
     y0: f64,
     y1: f64,
     z0: f64,

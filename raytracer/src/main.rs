@@ -21,7 +21,6 @@ use basic::{
     pdf::MixturePdf,
     vec::{Color, Point3, Vec3},
 };
-use hittable::boxes::Boxes;
 use hittable::bvh::BvhNode;
 use hittable::constantmedium::ConstantMedium;
 use hittable::sphere::{MovingSphere, Sphere};
@@ -29,6 +28,7 @@ use hittable::{
     aarect::{XYRect, XZRect, YZRect},
     FlipFace,
 };
+use hittable::{boxes::Boxes, triangle::Triangle};
 use hittable::{Hittable, HittableList, RotateY, Translate};
 use material::{Dielectric, DiffuseLight, Lambertian, Metal};
 use texture::{CheckerTexture, ImageTexture, NoiseTexture};
@@ -43,7 +43,7 @@ fn main() {
     const IMAGE_HEIGHT: u32 = 800;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 10;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
@@ -54,7 +54,7 @@ fn main() {
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(478., 278., -600.);
+    let lookfrom = Point3::new(278., 278., -800.);
     let lookat = Point3::new(278., 278., 0.);
     let background = Color::new(0., 0., 0.);
 
@@ -71,17 +71,6 @@ fn main() {
         style(SAMPLES_PER_PIXEL.to_string()).yellow(),
         style(MAX_DEPTH.to_string()).yellow(),
     );
-
-    // World
-    // let main_world = random_scene();
-    // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
-    // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
-    // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
-    // let main_world = BvhNode::new_list(&earth(), time0, time1);
-    // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
-    // let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
-    // let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
-    let main_world = BvhNode::new_list(&final_scene(), time0, time1);
 
     // Camera
     let cam = Camera::new(
@@ -103,6 +92,17 @@ fn main() {
         style(THREAD_NUMBER.to_string()).yellow(),
         style("Threads...").green(),
     );
+
+    // World
+    // let main_world = random_scene();
+    // let main_world = BvhNode::new_list(&random_scene(), 0., 1.);
+    // let main_world = BvhNode::new_list(&two_spheres(), time0, time1);
+    // let main_world = BvhNode::new_list(&two_perlin_spheres(), time0, time1);
+    // let main_world = BvhNode::new_list(&earth(), time0, time1);
+    // let main_world = BvhNode::new_list(&simple_light(), time0, time1);
+    let main_world = BvhNode::new_list(&cornell_box(), time0, time1);
+    // let main_world = BvhNode::new_list(&cornell_smoke(), time0, time1);
+    // let main_world = BvhNode::new_list(&final_scene(), time0, time1);
 
     // Random line
     let mut random_line_id: [u32; IMAGE_HEIGHT as usize] = [0; IMAGE_HEIGHT as usize];
@@ -134,10 +134,10 @@ fn main() {
         let world = main_world.clone();
         let mut lights = HittableList::default();
         lights.add(Arc::new(XZRect::new(
-            123.,
-            423.,
-            147.,
-            412.,
+            213.,
+            343.,
+            227.,
+            332.,
             554.,
             Dielectric::new(0.),
         )));
@@ -170,8 +170,7 @@ fn main() {
                             let u = (x as f64 + rand_u) / (IMAGE_WIDTH - 1) as f64;
                             let v = (y as f64 + rand_v) / (IMAGE_HEIGHT - 1) as f64;
                             let r = cam.get_ray(u, v);
-                            pixel_color +=
-                                ray_color(r, background, &world, &lights, MAX_DEPTH);
+                            pixel_color += ray_color(r, background, &world, &lights, MAX_DEPTH);
                         }
                         section_pixel_color.push(pixel_color);
                     }
@@ -326,10 +325,7 @@ fn write_color(pixel_color: Color, samples_per_pixel: i32) -> [u8; 3] {
 fn random_scene() -> HittableList {
     let mut world: HittableList = Default::default();
 
-    let checker = CheckerTexture::new(
-        Color::new(0.2, 0.3, 0.1),
-        Color::new(0.9, 0.9, 0.9),
-    );
+    let checker = CheckerTexture::new(Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
@@ -361,17 +357,9 @@ fn random_scene() -> HittableList {
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random(0.5, 1.);
                     let fuzz = rng.gen_range(0.0..0.5);
-                    world.add(Arc::new(Sphere::new(
-                        center,
-                        0.2,
-                        Metal::new(albedo, fuzz),
-                    )));
+                    world.add(Arc::new(Sphere::new(center, 0.2, Metal::new(albedo, fuzz))));
                 } else {
-                    world.add(Arc::new(Sphere::new(
-                        center,
-                        0.2,
-                        Dielectric::new(1.5),
-                    )));
+                    world.add(Arc::new(Sphere::new(center, 0.2, Dielectric::new(1.5))));
                 }
             }
         }
@@ -402,10 +390,7 @@ fn random_scene() -> HittableList {
 fn two_spheres() -> HittableList {
     let mut world: HittableList = Default::default();
 
-    let checker = CheckerTexture::new(
-        Color::new(0.2, 0.3, 0.1),
-        Color::new(0.9, 0.9, 0.9),
-    );
+    let checker = CheckerTexture::new(Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
 
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -10., 0.),
@@ -429,7 +414,7 @@ fn two_perlin_spheres() -> HittableList {
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        Lambertian::new_arc(pertext.clone()),
+        Lambertian::new_arc(pertext),
     )));
 
     world.add(Arc::new(Sphere::new(
@@ -464,7 +449,7 @@ fn simple_light() -> HittableList {
     world.add(Arc::new(Sphere::new(
         Point3::new(0., -1000., 0.),
         1000.,
-        Lambertian::new_arc(pertext.clone()),
+        Lambertian::new_arc(pertext),
     )));
 
     world.add(Arc::new(Sphere::new(
@@ -535,6 +520,13 @@ fn cornell_box() -> HittableList {
     // box2 = Arc::new(RotateY::new(box2, -18.));
     // box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
     // world.add(box2);
+
+    world.add(Arc::new(Triangle::new(
+        Point3::new(310., 450., 310.),
+        Point3::new(110., 450., 310.),
+        Point3::new(190., 250., 90.),
+        Lambertian::new(Color::new(0.25, 0.41, 1.)),
+    )));
 
     world
 }
@@ -657,11 +649,7 @@ pub fn final_scene() -> HittableList {
         Metal::new(Color::new(0.8, 0.8, 0.9), 1.),
     )));
 
-    let boundary = Sphere::new(
-        Point3::new(360., 150., 145.),
-        70.,
-        Dielectric::new(1.5),
-    );
+    let boundary = Sphere::new(Point3::new(360., 150., 145.), 70., Dielectric::new(1.5));
     world.add(Arc::new(boundary.clone()));
     world.add(Arc::new(ConstantMedium::new(
         boundary,
@@ -669,17 +657,14 @@ pub fn final_scene() -> HittableList {
         Color::new(0.2, 0.4, 0.9),
     )));
 
-    let boundary = Sphere::new(
-        Point3::new(0., 0., 0.),
-        5000.,
-        Dielectric::new(1.5),);
+    let boundary = Sphere::new(Point3::new(0., 0., 0.), 5000., Dielectric::new(1.5));
     world.add(Arc::new(ConstantMedium::new(
         boundary,
         0.0001,
         Color::new(1., 1., 1.),
     )));
 
-    let emat = Lambertian::new_arc(ImageTexture::new( "input/earthmap.jpg"));
+    let emat = Lambertian::new_arc(ImageTexture::new("input/earthmap.jpg"));
     world.add(Arc::new(Sphere::new(
         Point3::new(400., 200., 400.),
         100.,
@@ -705,10 +690,7 @@ pub fn final_scene() -> HittableList {
     }
 
     world.add(Arc::new(Translate::new(
-        RotateY::new(
-            BvhNode::new_list(&box2, 0., 1.),
-            15.,
-        ),
+        RotateY::new(BvhNode::new_list(&box2, 0., 1.), 15.),
         Vec3::new(-100., 270., 395.),
     )));
 

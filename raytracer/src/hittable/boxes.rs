@@ -17,7 +17,9 @@ pub struct Boxes {
 
 impl Boxes {
     pub fn new<M>(p0: Point3, p1: Point3, ptr: M) -> Self
-    where M: Material + Clone + 'static {
+    where
+        M: Material + Clone + 'static,
+    {
         let mut sides: HittableList = Default::default();
         sides.add(Arc::new(XYRect::new(
             p0.x,
@@ -61,14 +63,7 @@ impl Boxes {
             p1.x,
             ptr.clone(),
         )));
-        sides.add(Arc::new(YZRect::new(
-            p0.y, 
-            p1.y, 
-            p0.z, 
-            p1.z, 
-            p0.x, 
-            ptr
-        )));
+        sides.add(Arc::new(YZRect::new(p0.y, p1.y, p0.z, p1.z, p0.x, ptr)));
 
         Self {
             min: p0,

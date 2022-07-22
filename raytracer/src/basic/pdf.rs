@@ -1,4 +1,4 @@
-use std::{f64::consts::PI};
+use std::f64::consts::PI;
 
 use rand::Rng;
 
@@ -54,7 +54,9 @@ impl Pdf for CosPdf {
 }
 
 pub struct HittablePdf<'a, H>
-where H: Hittable {
+where
+    H: Hittable,
+{
     o: Point3,
     ptr: &'a H,
 }
@@ -75,7 +77,10 @@ impl<'a, H: Hittable> Pdf for HittablePdf<'a, H> {
 }
 
 pub struct MixturePdf<P0, P1>
-where P0: Pdf, P1: Pdf {
+where
+    P0: Pdf,
+    P1: Pdf,
+{
     p0: P0,
     p1: P1,
 }
