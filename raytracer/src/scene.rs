@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use tobj;
 
 use rand::Rng;
 
@@ -184,14 +183,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
         555.,
         white.clone(),
     )));
-    world.add(Arc::new(XYRect::new(
-        0.,
-        555.,
-        0.,
-        555.,
-        555.,
-        white.clone(),
-    )));
+    world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white)));
 
     //    let box1 = Boxes::new(
     //        Point3::new(0., 0., 0.),
@@ -226,7 +218,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
     // )));
 
     // objects
-    load_obj(&mut world);
+    get_object(&mut world);
 
     let mut lights = HittableList::default();
     lights.add(Arc::new(XZRect::new(
@@ -407,51 +399,54 @@ pub fn final_scene() -> HittableList {
     world
 }
 
-fn load_obj(world: &mut HittableList) {
-    let patrick = tobj::load_obj(
+fn get_object(world: &mut HittableList) {
+    let obj = tobj::load_obj(
         "source/obj/patrick.obj",
-        &tobj::GPU_LOAD_OPTIONS,
+        &tobj::LoadOptions {
+            single_index: false,
+            triangulate: true,
+            ..Default::default()
+        },
     );
 
-    assert!(patrick.is_ok());
+    assert!(obj.is_ok());
 
-    let (models, materials) = patrick.expect("Failed to load OBJ file");
+    let (models, _materials) = obj.expect("Failed to load OBJ file");
 
     // Materials might report a separate loading error if the MTL file wasn't found.
     // If you don't need the materials, you can generate a default here and use that
     // instead.
     // let materials = materials.expect("Failed to load MTL file");
 
-    for (i, m) in models.iter().enumerate() {
+    for (_i, m) in models.iter().enumerate() {
         let mesh = &m.mesh;
 
-        assert!(mesh.positions.len() % 9 == 0);
+        // if mesh.positions.len() % 9 != 0 {
+        // println!("{}", mesh.positions.len());
+        // std::process::exit(0);
+        // }
+
+        let mut vertices: Vec<Point3> = Vec::default();
+        for v in 0..mesh.positions.len() / 3 {
+            let x = mesh.positions[3 * v] as f64;
+            let y = mesh.positions[3 * v + 1] as f64;
+            let z = mesh.positions[3 * v + 2] as f64;
+            vertices.push(Point3::new(x, y, z));
+        }
         let mut object = HittableList::default();
-        for v in 0..mesh.positions.len() / 9 {
-            let tri = Triangle::new(
-                Point3::new(
-                    mesh.positions[9 * v + 0] as f64,
-                    mesh.positions[9 * v + 1] as f64,
-                    mesh.positions[9 * v + 2] as f64,
-                ),
-                Point3::new(
-                    mesh.positions[9 * v + 3] as f64,
-                    mesh.positions[9 * v + 4] as f64,
-                    mesh.positions[9 * v + 5] as f64,
-                ),
-                Point3::new(
-                    mesh.positions[9 * v + 6] as f64,
-                    mesh.positions[9 * v + 7] as f64,
-                    mesh.positions[9 * v + 8] as f64,
-                ),
-                Lambertian::new(Color::new(0.78, 0.78, 0.78)),
-            );
+
+        for v in 0..mesh.indices.len() / 3 {
+            let x = vertices[mesh.indices[v * 3] as usize];
+            let y = vertices[mesh.indices[v * 3 + 1] as usize];
+            let z = vertices[mesh.indices[v * 3 + 2] as usize];
+            let tri = Triangle::new(x, y, z, Lambertian::new(Color::new(0.78, 0.78, 0.78)));
             object.add(Arc::new(tri));
         }
+
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 30.);
+        let object = Zoom::new(object, 200.);
         let object = RotateY::new(object, 180.);
-        let object = Translate::new(object, Vec3::new(200., 0., 300.));
+        let object = Translate::new(object, Vec3::new(200., 150., 300.));
         world.add(Arc::new(object));
     }
 
