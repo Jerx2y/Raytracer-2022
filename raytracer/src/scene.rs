@@ -444,15 +444,19 @@ fn get_object(world: &mut HittableList) {
             let y = mesh.indices[v * 3 + 1] as usize;
             let z = mesh.indices[v * 3 + 2] as usize;
 
-            let u1 = mesh.texcoords[(x * 2)];
-            let v1 = mesh.texcoords[(x * 2 + 1)];
-            let mat1 = ObjTexture::new(u1 as f64, v1 as f64, file_jpg);
+            let u1 = mesh.texcoords[(x * 2)] as f64;
+            let v1 = mesh.texcoords[(x * 2 + 1)] as f64;
+            let u2 = mesh.texcoords[(y * 2)] as f64;
+            let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
+            let u3 = mesh.texcoords[(z * 2)] as f64;
+            let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
+            let mat_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, file_jpg);
 
             let tri = Triangle::new(
                 vertices[x],
                 vertices[y],
                 vertices[z],
-                Lambertian::new_arc(mat1),
+                Lambertian::new_arc(mat_ptr),
             );
             object.add(Arc::new(tri));
         }
@@ -460,7 +464,7 @@ fn get_object(world: &mut HittableList) {
         let object = BvhNode::new_list(&object, 0., 1.);
         let object = Zoom::new(object, 200.);
         let object = RotateY::new(object, 180.);
-        let object = Translate::new(object, Vec3::new(278., 100., 300.));
+        let object = Translate::new(object, Vec3::new(278., 0., 500.));
         world.add(Arc::new(object));
     }
 

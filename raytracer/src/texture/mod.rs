@@ -138,25 +138,36 @@ impl Texture for ImageTexture {
 
 #[derive(Clone)]
 pub struct ObjTexture {
-    pub u: f64,
-    pub v: f64,
+    pub u1: f64,
+    pub v1: f64,
+    pub u2: f64,
+    pub v2: f64,
+    pub u3: f64,
+    pub v3: f64,
     pub img: RgbImage,
 }
 
 impl ObjTexture {
-    pub fn new(u: f64, v: f64, file_name: &str) -> Self {
+    pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, file_name: &str) -> Self {
         Self {
-            u,
-            v,
+            u1,
+            v1,
+            u2,
+            v2,
+            u3,
+            v3,
             img: image::open(file_name).expect("failed").to_rgb8(),
         }
     }
 }
 
 impl Texture for ObjTexture {
-    fn value(&self, _u: f64, _v: f64, _p: Point3) -> Color {
-        let mut i = (self.u * ((self.img.width()) as f64)) as i32;
-        let mut j = ((1. - self.v) * ((self.img.height()) as f64)) as i32;
+    fn value(&self, beta: f64, gama: f64, _p: Point3) -> Color {
+        let alpha = 1. - beta - gama;
+        let u = self.u1 * alpha + self.u2 * beta + self.u3 * gama;
+        let v = self.v1 * alpha + self.v2 * beta + self.v3 * gama;
+        let mut i = (u * ((self.img.width()) as f64)) as i32;
+        let mut j = ((1. - v) * ((self.img.height()) as f64)) as i32;
         if i >= self.img.width() as i32 {
             i = self.img.width() as i32 - 1;
         }
@@ -166,7 +177,7 @@ impl Texture for ObjTexture {
         let color_scale = 1.0 / 255.999;
         let color_pixel = self.img.get_pixel(i as u32, j as u32);
 
-        Point3::new(
+        Color::new(
             color_scale * (color_pixel[0] as f64),
             color_scale * (color_pixel[1] as f64),
             color_scale * (color_pixel[2] as f64),
