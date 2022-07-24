@@ -14,6 +14,9 @@
 #### Final Scene
 ![output.jpg](https://s2.loli.net/2022/07/19/RaBIqNVnbXc91E4.jpg)
 
+### 当前正在做的
+![output.jpg](https://raw.githubusercontent.com/Jerx2y/Raytracer-Assignment-2022/master/output/output.jpg)
+
 ### Bonus
 
 - [x] Book3 

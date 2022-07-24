@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, str::FromStr, default};
 
 use rand::Rng;
 
@@ -401,8 +401,8 @@ pub fn final_scene() -> HittableList {
 
 fn get_object(world: &mut HittableList) {
 
-    let file_name = "source/obj/patrick.obj";
-    let file_jpg = "source/obj/patrick.png";
+    let file_name = "source/obj/10483_baseball_v1_L3.obj";
+    // let file_jpg = "source/obj/patrick.png";
 
     let obj = tobj::load_obj(
         file_name,
@@ -420,7 +420,7 @@ fn get_object(world: &mut HittableList) {
     // Materials might report a separate loading error if the MTL file wasn't found.
     // If you don't need the materials, you can generate a default here and use that
     // instead.
-    // let materials = materials.expect("Failed to load MTL file");
+    let materials = _materials.expect("Failed to load MTL file");
 
     for (_i, m) in models.iter().enumerate() {
         let mesh = &m.mesh;
@@ -430,6 +430,10 @@ fn get_object(world: &mut HittableList) {
         // std::process::exit(0);
         // }
 
+        // print!("{}, ", mesh.material_id.unwrap());
+        // print!("{}, ", materials[mesh.material_id.unwrap()].name);
+        // println!("{}", );
+
         let mut vertices: Vec<Point3> = Vec::default();
         for v in 0..mesh.positions.len() / 3 {
             let x = mesh.positions[3 * v] as f64;
@@ -438,6 +442,9 @@ fn get_object(world: &mut HittableList) {
             vertices.push(Point3::new(x, y, z));
         }
         let mut object = HittableList::default();
+        let mut file_jpg = "source/obj/".to_string();
+        file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
+        let image = image::open(file_jpg).expect("failed").to_rgb8();
 
         for v in 0..mesh.indices.len() / 3 {
             let x = mesh.indices[v * 3] as usize;
@@ -450,21 +457,24 @@ fn get_object(world: &mut HittableList) {
             let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
             let u3 = mesh.texcoords[(z * 2)] as f64;
             let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
-            let mat_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, file_jpg);
+            
+            let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
+
 
             let tri = Triangle::new(
                 vertices[x],
                 vertices[y],
                 vertices[z],
-                Lambertian::new_arc(mat_ptr),
+                Lambertian::new_arc(tex_ptr),
+                //Lambertian::new(Color::new(0.75, 0.75, 0.75)),
             );
             object.add(Arc::new(tri));
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 200.);
+        let object = Zoom::new(object, 25.);
         let object = RotateY::new(object, 180.);
-        let object = Translate::new(object, Vec3::new(278., 0., 500.));
+        let object = Translate::new(object, Vec3::new(278., 150., 400.));
         world.add(Arc::new(object));
     }
 

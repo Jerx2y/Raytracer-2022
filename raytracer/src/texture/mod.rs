@@ -148,7 +148,7 @@ pub struct ObjTexture {
 }
 
 impl ObjTexture {
-    pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, file_name: &str) -> Self {
+    pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, img: RgbImage) -> Self {
         Self {
             u1,
             v1,
@@ -156,7 +156,7 @@ impl ObjTexture {
             v2,
             u3,
             v3,
-            img: image::open(file_name).expect("failed").to_rgb8(),
+            img,
         }
     }
 }
