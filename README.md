@@ -18,11 +18,13 @@
 
 - [x] Book3 
 
-- [ ] Track 5: More Code Generation 在过程宏中，读取文件，直接从 yaml 或 JSON 文件（选择一种即可）生成场景对应的程序。
+- [x] rack 1: Reduce Contention 
 
-- [ ] Track 8: Support for obj 支持载入obj文件并渲染。
+- [x] rack 2: Static Dispatch 
 
-- [ ] 光栅化 (Unity Shader入门精要)
+- [x] rack 4: PDF Static Dispatch
+
+- [x] rack 8: Support for obj
  
 
 ## 课程介绍

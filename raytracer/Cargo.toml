@@ -1,6 +1,6 @@
 [package]
 name = "raytracer"
-version = "0.2.20"
+version = "0.4.0"
 authors = ["WYH <jerx2y@sjtu.edu.cn>"]
 edition = "2018"
 

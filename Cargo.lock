@@ -423,7 +423,7 @@ dependencies = [
 
 [[package]]
 name = "raytracer"
-version = "0.2.20"
+version = "0.4.0"
 dependencies = [
  "console",
  "image",

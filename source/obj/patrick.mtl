@@ -16,7 +16,7 @@ newmtl pat
 	Kd 0.8 0.8 0.8
 	Ks 0.0 0.0 0.0
 	Ka 0.2 0.2 0.2
-	map_Kd Char_Patrick.png
+	map_Kd patrick.png
 
 newmtl sb
 	Ns 0

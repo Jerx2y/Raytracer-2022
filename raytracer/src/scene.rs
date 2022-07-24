@@ -14,7 +14,7 @@ use crate::{
         FlipFace, HittableList, RotateY, Translate, Zoom,
     },
     material::{Dielectric, DiffuseLight, Lambertian, Metal},
-    texture::{CheckerTexture, ImageTexture, NoiseTexture},
+    texture::{CheckerTexture, ImageTexture, NoiseTexture, ObjTexture},
 };
 
 #[allow(dead_code)]
@@ -400,10 +400,14 @@ pub fn final_scene() -> HittableList {
 }
 
 fn get_object(world: &mut HittableList) {
+
+    let file_name = "source/obj/patrick.obj";
+    let file_jpg = "source/obj/patrick.png";
+
     let obj = tobj::load_obj(
-        "source/obj/patrick.obj",
+        file_name,
         &tobj::LoadOptions {
-            single_index: false,
+            single_index: true,
             triangulate: true,
             ..Default::default()
         },
@@ -436,17 +440,27 @@ fn get_object(world: &mut HittableList) {
         let mut object = HittableList::default();
 
         for v in 0..mesh.indices.len() / 3 {
-            let x = vertices[mesh.indices[v * 3] as usize];
-            let y = vertices[mesh.indices[v * 3 + 1] as usize];
-            let z = vertices[mesh.indices[v * 3 + 2] as usize];
-            let tri = Triangle::new(x, y, z, Lambertian::new(Color::new(0.78, 0.78, 0.78)));
+            let x = mesh.indices[v * 3] as usize;
+            let y = mesh.indices[v * 3 + 1] as usize;
+            let z = mesh.indices[v * 3 + 2] as usize;
+
+            let u1 = mesh.texcoords[(x * 2)];
+            let v1 = mesh.texcoords[(x * 2 + 1)];
+            let mat1 = ObjTexture::new(u1 as f64, v1 as f64, file_jpg);
+
+            let tri = Triangle::new(
+                vertices[x],
+                vertices[y],
+                vertices[z],
+                Lambertian::new_arc(mat1),
+            );
             object.add(Arc::new(tri));
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
         let object = Zoom::new(object, 200.);
         let object = RotateY::new(object, 180.);
-        let object = Translate::new(object, Vec3::new(200., 150., 300.));
+        let object = Translate::new(object, Vec3::new(278., 100., 300.));
         world.add(Arc::new(object));
     }
 

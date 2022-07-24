@@ -1,6 +1,6 @@
 pub mod perlin;
 
-use image::GenericImageView;
+use image::{GenericImageView, RgbImage};
 
 use crate::basic::vec::{Color, Point3};
 use crate::texture::perlin::Perlin;
@@ -132,6 +132,44 @@ impl Texture for ImageTexture {
             pixel[0] as f64 * color_scale,
             pixel[1] as f64 * color_scale,
             pixel[2] as f64 * color_scale,
+        )
+    }
+}
+
+#[derive(Clone)]
+pub struct ObjTexture {
+    pub u: f64,
+    pub v: f64,
+    pub img: RgbImage,
+}
+
+impl ObjTexture {
+    pub fn new(u: f64, v: f64, file_name: &str) -> Self {
+        Self {
+            u,
+            v,
+            img: image::open(file_name).expect("failed").to_rgb8(),
+        }
+    }
+}
+
+impl Texture for ObjTexture {
+    fn value(&self, _u: f64, _v: f64, _p: Point3) -> Color {
+        let mut i = (self.u * ((self.img.width()) as f64)) as i32;
+        let mut j = ((1. - self.v) * ((self.img.height()) as f64)) as i32;
+        if i >= self.img.width() as i32 {
+            i = self.img.width() as i32 - 1;
+        }
+        if j >= self.img.height() as i32 {
+            j = self.img.height() as i32 - 1;
+        }
+        let color_scale = 1.0 / 255.999;
+        let color_pixel = self.img.get_pixel(i as u32, j as u32);
+
+        Point3::new(
+            color_scale * (color_pixel[0] as f64),
+            color_scale * (color_pixel[1] as f64),
+            color_scale * (color_pixel[2] as f64),
         )
     }
 }
