@@ -21,13 +21,13 @@
 
 - [x] Book3 
 
-- [x] rack 1: Reduce Contention 
+- [x] Track 1: Reduce Contention 
 
-- [x] rack 2: Static Dispatch 
+- [x] Track 2: Static Dispatch 
 
-- [x] rack 4: PDF Static Dispatch
+- [x] Track 4: PDF Static Dispatch
 
-- [x] rack 8: Support for obj
+- [x] Track 8: Support for obj
  
 
 ## 课程介绍

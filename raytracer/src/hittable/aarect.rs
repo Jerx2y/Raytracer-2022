@@ -10,6 +10,7 @@ use crate::{
     material::Material,
 };
 
+#[derive(Clone)]
 pub struct XYRect<M>
 where
     M: Material,
@@ -71,6 +72,7 @@ impl<M: Material> Hittable for XYRect<M> {
     }
 }
 
+#[derive(Clone)]
 pub struct XZRect<M>
 where
     M: Material,
@@ -153,6 +155,7 @@ impl<M: Material> Hittable for XZRect<M> {
     }
 }
 
+#[derive(Clone)]
 pub struct YZRect<M>
 where
     M: Material,

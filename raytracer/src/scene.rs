@@ -1,4 +1,4 @@
-use std::{sync::Arc, str::FromStr, default};
+use std::{sync::Arc};
 
 use rand::Rng;
 
@@ -164,16 +164,53 @@ pub fn simple_light() -> HittableList {
 pub fn cornell_box() -> (HittableList, HittableList) {
     let mut world: HittableList = Default::default();
 
+    let light_strong = DiffuseLight::new(Color::new(30., 30., 30.));
+    let light_weak = DiffuseLight::new(Color::new(10., 10., 10.));
+
+    let light_top = XZRect::new(
+        213.0,
+        343.0,
+        127.0,
+        232.0,
+        554.0,
+        light_strong.clone(),
+    );
+//    let light_left = YZRect::new(
+//        100.0,
+//        300.0,
+//        100.0,
+//        150.0,
+//        554.0,
+//        light_weak.clone(),
+//    );
+//    let light_right = YZRect::new(
+//        100.0,
+//        300.0,
+//        100.0,
+//        150.0,
+//        1.0,
+//        light_weak,
+//    );
+//    let light_front = XYRect::new(
+//        0.0,
+//        0.0,
+//        555.0,
+//        555.0,
+//        -801.,
+//        light_strong,
+//    );
+
+    world.add(Arc::new(FlipFace::new(light_top.clone())));
+//    world.add(Arc::new(FlipFace::new(light_left)));
+//    world.add(Arc::new(light_right));
+
+
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
     let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
-    let light = DiffuseLight::new(Color::new(30., 30., 30.));
 
     world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., green)));
     world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
-    world.add(Arc::new(FlipFace::new(XZRect::new(
-        213., 343., 227., 332., 554., light,
-    ))));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
     world.add(Arc::new(XZRect::new(
         0.,
@@ -184,6 +221,8 @@ pub fn cornell_box() -> (HittableList, HittableList) {
         white.clone(),
     )));
     world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white)));
+
+    // world.add(Arc::new(FlipFace::new(XYRect::new(213., 343., 217., 332., -100., light))));
 
     //    let box1 = Boxes::new(
     //        Point3::new(0., 0., 0.),
@@ -221,14 +260,10 @@ pub fn cornell_box() -> (HittableList, HittableList) {
     get_object(&mut world);
 
     let mut lights = HittableList::default();
-    lights.add(Arc::new(XZRect::new(
-        213.,
-        343.,
-        227.,
-        332.,
-        554.,
-        Dielectric::new(0.),
-    )));
+    
+    lights.add(Arc::new(light_top));
+//    lights.add(Arc::new(light_left));
+//    lights.add(Arc::new(light_right));
 
     (world, lights)
 }
@@ -401,8 +436,9 @@ pub fn final_scene() -> HittableList {
 
 fn get_object(world: &mut HittableList) {
 
-    let file_name = "source/obj/10483_baseball_v1_L3.obj";
     // let file_jpg = "source/obj/patrick.png";
+    let file_path = "source/HutaoObj/";
+    let file_name = file_path.to_string() + "Hutao.obj";
 
     let obj = tobj::load_obj(
         file_name,
@@ -442,9 +478,9 @@ fn get_object(world: &mut HittableList) {
             vertices.push(Point3::new(x, y, z));
         }
         let mut object = HittableList::default();
-        let mut file_jpg = "source/obj/".to_string();
+        let mut file_jpg = file_path.to_string();
         file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
-        let image = image::open(file_jpg).expect("failed").to_rgb8();
+        let image = Arc::new(image::open(file_jpg).expect("failed").to_rgb8());
 
         for v in 0..mesh.indices.len() / 3 {
             let x = mesh.indices[v * 3] as usize;
@@ -460,7 +496,6 @@ fn get_object(world: &mut HittableList) {
             
             let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
 
-
             let tri = Triangle::new(
                 vertices[x],
                 vertices[y],
@@ -472,9 +507,9 @@ fn get_object(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 25.);
-        let object = RotateY::new(object, 180.);
-        let object = Translate::new(object, Vec3::new(278., 150., 400.));
+        let object = Zoom::new(object, 20.);
+        let object = RotateY::new(object, 0.);
+        let object = Translate::new(object, Vec3::new(278., 0., 500.));
         world.add(Arc::new(object));
     }
 

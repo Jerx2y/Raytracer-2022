@@ -1,5 +1,7 @@
 pub mod perlin;
 
+use std::sync::Arc;
+
 use image::{GenericImageView, RgbImage};
 
 use crate::basic::vec::{Color, Point3};
@@ -144,11 +146,11 @@ pub struct ObjTexture {
     pub v2: f64,
     pub u3: f64,
     pub v3: f64,
-    pub img: RgbImage,
+    pub img: Arc<RgbImage>,
 }
 
 impl ObjTexture {
-    pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, img: RgbImage) -> Self {
+    pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, img: Arc<RgbImage>) -> Self {
         Self {
             u1,
             v1,
