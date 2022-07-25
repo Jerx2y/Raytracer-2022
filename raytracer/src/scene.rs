@@ -164,8 +164,8 @@ pub fn simple_light() -> HittableList {
 pub fn cornell_box() -> (HittableList, HittableList) {
     let mut world: HittableList = Default::default();
 
-    let light_strong = DiffuseLight::new(Color::new(30., 30., 30.));
-    let light_weak = DiffuseLight::new(Color::new(10., 10., 10.));
+    let light_strong = DiffuseLight::new(Color::new(60., 60., 60.));
+    // let light_weak = DiffuseLight::new(Color::new(60.,60., 60.));
 
     let light_top = XZRect::new(
         213.0,
@@ -193,24 +193,25 @@ pub fn cornell_box() -> (HittableList, HittableList) {
 //    );
 //    let light_front = XYRect::new(
 //        0.0,
-//        0.0,
 //        555.0,
+//        0.0,
 //        555.0,
 //        -801.,
 //        light_strong,
 //    );
 
     world.add(Arc::new(FlipFace::new(light_top.clone())));
-//    world.add(Arc::new(FlipFace::new(light_left)));
-//    world.add(Arc::new(light_right));
+//    world.add(Arc::new(FlipFace::new(light_left.clone())));
+//    world.add(Arc::new(light_right.clone()));
+//    world.add(Arc::new(light_front.clone()));
 
 
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
     let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
 
-    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., green)));
-    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., red)));
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 555., red)));
+    world.add(Arc::new(YZRect::new(0., 555., 0., 555., 0., green)));
     world.add(Arc::new(XZRect::new(0., 555., 0., 555., 0., white.clone())));
     world.add(Arc::new(XZRect::new(
         0.,
@@ -264,6 +265,7 @@ pub fn cornell_box() -> (HittableList, HittableList) {
     lights.add(Arc::new(light_top));
 //    lights.add(Arc::new(light_left));
 //    lights.add(Arc::new(light_right));
+//    lights.add(Arc::new(light_front));
 
     (world, lights)
 }
@@ -437,8 +439,8 @@ pub fn final_scene() -> HittableList {
 fn get_object(world: &mut HittableList) {
 
     // let file_jpg = "source/obj/patrick.png";
-    let file_path = "source/HutaoObj/";
-    let file_name = file_path.to_string() + "Hutao.obj";
+    let file_path = "source/obj/";
+    let file_name = file_path.to_string() + "patrick.obj";
 
     let obj = tobj::load_obj(
         file_name,
@@ -507,9 +509,9 @@ fn get_object(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 20.);
-        let object = RotateY::new(object, 0.);
-        let object = Translate::new(object, Vec3::new(278., 0., 500.));
+        let object = Zoom::new(object, 220.);
+        let object = RotateY::new(object, 180.);
+        let object = Translate::new(object, Vec3::new(278., 0., 460.));
         world.add(Arc::new(object));
     }
 
