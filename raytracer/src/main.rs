@@ -31,23 +31,23 @@ fn main() {
 
     // Image
     let path = "output/output.jpg";
-    const IMAGE_WIDTH: u32 = 500;
-    const IMAGE_HEIGHT: u32 = 500;
+    const IMAGE_WIDTH: u32 = 2560;
+    const IMAGE_HEIGHT: u32 = 1440;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 2000;
+    const SAMPLES_PER_PIXEL: i32 = 100;
     const MAX_DEPTH: i32 = 50;
     const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
-    let vup = Vec3::new(0., 1., 0.);
+    let vup = Vec3::new(1., 5., 0.);
     let vfov = 40.;
     let aperture = 0.0;
     let focus_dist = 10.;
     let time0 = 0.;
     let time1 = 1.;
-    let lookfrom = Point3::new(278., 278., -800.);
-    let lookat = Point3::new(278., 278., 0.);
+    let lookfrom = Point3::new(0., 15., -150.);
+    let lookat = Point3::new(35., 0., 0.);
     let background = Color::new(0., 0., 0.);
 
     let begin_time = Instant::now();
@@ -86,7 +86,7 @@ fn main() {
     );
 
     // World & lights
-    let (main_world, main_lights) = scene::cornell_box();
+    let (main_world, main_lights) = scene::wwscene();
     let main_world = BvhNode::new_list(&main_world, time0, time1);
 
     // Random line

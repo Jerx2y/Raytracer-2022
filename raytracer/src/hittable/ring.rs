@@ -14,6 +14,7 @@ where
 }
 
 impl<M: Material> Ring<M> {
+    #[allow(dead_code)]
     pub fn new(r: f64, t: f64, mat: M) -> Self {
         Self {
             r,
@@ -53,11 +54,12 @@ impl<M: Material> Hittable for Ring<M> {
         Some(rec)
     }
 
-    fn bounding_box(&self, time0: f64, time1: f64) -> Option<AABB> {
+    fn bounding_box(&self, _time0: f64, _time1: f64) -> Option<AABB> {
         let thickness = 0.0001;
+        let r = self.r + self.t;
         Some(AABB::new(
-            Point3::new(self.r - self.t, -thickness, self.r - self.t),
-            Point3::new(self.r + self.t, thickness, self.r + self.t),
+            Point3::new(-r, -thickness, -r),
+            Point3::new(r, thickness, r),
         ))
     }
 }
