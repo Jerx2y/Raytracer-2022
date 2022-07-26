@@ -687,7 +687,7 @@ pub fn wwscene() -> (HittableList, HittableList) {
 
     const CNT: usize = 20;
     let delta: usize = 2;
-    let weight: [usize; CNT] = [2, 3, 2, 3, 4, 3, 2, 2, 3, 2, 3, 2, 3, 3, 2, 3, 2, 3, 4, 3];
+    let weight: [usize; CNT] = [2, 3, 2, 3, 4, 3, 2, 2, 3, 2, 3, 2, 4, 5, 2, 3, 2, 3, 4, 3];
 
     let mut now = 80;
     for k in 0..CNT {
@@ -710,6 +710,17 @@ pub fn wwscene() -> (HittableList, HittableList) {
         let star = Sphere::new(Point3::new(rng.gen_range(-500.0..=500.0), rng.gen_range(-300.0..=300.0), rng.gen_range(200.0..=400.0)), rng.gen_range(0.2..=0.5), DiffuseLight::new(scolor));
         world.add(Arc::new(star))
     }
+
+    // add 
+//     let flat_rect = XZRect::new(
+//         -500.,
+//         500.,
+//         -500.,
+//         500.,
+//         -0.0001,
+//         Dielectric::new(1.5),
+//     );
+//     world.add(Arc::new(flat_rect));
     
     // Import Object
     get_Shuttle(&mut world);
