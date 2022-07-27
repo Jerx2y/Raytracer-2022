@@ -95,6 +95,16 @@ pub fn random_in_unit_disk() -> Vec3 {
     }
 }
 
+pub fn random_in_unit_XZ_disk() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    loop {
+        let p = Vec3::new(rng.gen_range(-1.0..1.0), 0., rng.gen_range(-1.0..1.0));
+        if p.length() < 1. {
+            return p;
+        }
+    }
+}
+
 pub fn random_to_sphere(radius: f64, dis_sqr: f64) -> Vec3 {
     let mut rng = rand::thread_rng();
     let r1: f64 = rng.gen();

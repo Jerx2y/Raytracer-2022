@@ -183,13 +183,13 @@ impl<T: Texture + Clone> Material for DiffuseLight<T> {
 #[derive(Clone, Copy)]
 pub struct Isotropic<T>
 where
-    T: Texture + Clone + Copy,
+    T: Texture + Clone,
 {
     #[allow(dead_code)]
     albedo: T,
 }
 
-impl<T: Texture + Clone + Copy> Isotropic<T> {
+impl<T: Texture + Clone> Isotropic<T> {
     pub fn new_arc(a: T) -> Self {
         Self { albedo: a }
     }
@@ -203,7 +203,7 @@ impl Isotropic<SolidColor> {
     }
 }
 
-impl<T: Texture + Clone + Copy> Material for Isotropic<T> {
+impl<T: Texture + Clone> Material for Isotropic<T> {
     fn scatter(&self, r_in: Ray, rec: &HitRecord) -> Option<ScatterRecord> {
         Some(ScatterRecord::new(
             Some(Ray::new(rec.p, random_in_unit_sphere(), r_in.tm)),

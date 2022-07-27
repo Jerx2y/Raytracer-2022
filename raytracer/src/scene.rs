@@ -3,7 +3,7 @@ use std::{sync::Arc};
 use rand::Rng;
 
 use crate::{
-    basic::vec::{Color, Point3, Vec3},
+    basic::vec::{Color, Point3, Vec3, random_in_unit_disk, random_in_unit_XZ_disk},
     hittable::{
         aarect::{XYRect, XZRect, YZRect},
         boxes::Boxes,
@@ -11,7 +11,7 @@ use crate::{
         constantmedium::ConstantMedium,
         sphere::{MovingSphere, Sphere},
         triangle::Triangle,
-        FlipFace, HittableList, RotateY, Translate, Zoom, ring::Ring,
+        FlipFace, HittableList, RotateY, Translate, Zoom, ring::{Ring, self},
     },
     material::{Dielectric, DiffuseLight, Lambertian, Metal},
     texture::{CheckerTexture, ImageTexture, NoiseTexture, ObjTexture},
@@ -509,9 +509,9 @@ fn get_Shuttle(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 25.);
-        let object = RotateY::new(object, 74.);
-        let object = Translate::new(object, Vec3::new(60., -37.6, 0.));
+        let object = Zoom::new(object, 12.);
+        let object = RotateY::new(object, 56.);
+        let object = Translate::new(object, Vec3::new(29.88, 1.3, -102.59));
         world.add(Arc::new(object));
     }
 
@@ -658,41 +658,96 @@ pub fn wwscene() -> (HittableList, HittableList) {
     let mut lights = HittableList::default();
 
     // Lights
-    let light_strong = DiffuseLight::new(Color::new(60., 60., 60.));
+    let light_strong = DiffuseLight::new(Color::new(130., 130., 130.));
+//    let light_sphere = Sphere::new(
+//        Point3::new(200., 200., 200.),
+//        20.,
+//        light_strong.clone(),
+//    );
+//    world.add(Arc::new(light_sphere.clone()));
+//    lights.add(Arc::new(light_sphere));
     let light_sphere = Sphere::new(
-        Point3::new(200., 200., 200.),
-        20.,
-        light_strong.clone(),
-    );
-    world.add(Arc::new(light_sphere.clone()));
-    lights.add(Arc::new(light_sphere));
-    let light_sphere = Sphere::new(
-        Point3::new(200., 200., -200.),
-        20.,
+        Point3::new(800., 700., -800.),
+        70.,
         light_strong,
     );
     world.add(Arc::new(light_sphere.clone()));
     lights.add(Arc::new(light_sphere));
 
-    // feature
+    // Saturn
     let saturn_texture = ImageTexture::new("source/Saturn.jpg");
     let saturn_surface = Lambertian::new_arc(saturn_texture);
-
     world.add(Arc::new(Sphere::new(
         Point3::new(0., 0., 0.),
         43.,
-        // Lambertian::new(Color::new(0.5976, 1., 1.)),
         saturn_surface
     )));
 
+    // Jupiter
+    let jupiter_texture = ImageTexture::new("source/Jupiter.jpg");
+    let jupiter_surface = Lambertian::new_arc(jupiter_texture);
+    world.add(Arc::new(Sphere::new(
+        Point3::new(150., 20., 150.),
+        26.,
+        jupiter_surface
+    )));
+
+
+    // Mars
+    let mars_texture = ImageTexture::new("source/Mars.jpg");
+    let mars_surface = Lambertian::new_arc(mars_texture);
+    world.add(Arc::new(Sphere::new(
+        Point3::new(480., 25., 500.),
+        25.,
+        mars_surface
+    )));
+    
+//     world.add(Arc::new(Sphere::new(
+//         Point3::new(0., 0., 0.),
+//         -43.,
+//         Dielectric::new(1.5),
+//     )));
+
+    // ring star
+    let mut rng = rand::thread_rng();
+//    for i in 0..100 {
+//        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
+//        pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
+//        let dc = match i % 3 {
+//            0 => Color::new(0., 1., 1.),
+//            1 => Color::new(1., 0., 1.),
+//            _ => Color::new(1., 1., 0.),
+//        };
+//        let ring_star = Sphere::new(
+//            pos, 
+//            rng.gen_range(0.3..=0.6),
+//            DiffuseLight::new(dc));
+//        world.add(Arc::new(ring_star));
+//    }
+    for _i in 0..50 {
+        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
+        pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
+        let ring_star = Sphere::new(
+            pos, 
+            rng.gen_range(0.3..=0.6),
+            Dielectric::new(1.5),
+        );
+        world.add(Arc::new(ring_star));
+    }
+
+    // ring
     const CNT: usize = 20;
     let delta: usize = 2;
-    let weight: [usize; CNT] = [2, 3, 2, 3, 4, 3, 2, 2, 3, 2, 3, 2, 4, 5, 2, 3, 2, 3, 4, 3];
-
+    let weight: [usize; CNT] = [2, 3, 2, 3, 4, 3, 2, 2, 3, 2, 3, 4, 3, 6, 4, 5, 3, 3, 4, 3];
     let mut now = 80;
     for k in 0..CNT {
         for i in now * weight[k]..(now + delta) * weight[k] {
-            let ring = Ring::new(i as f64 / weight[k] as f64, 0.01, Lambertian::new(Color::new(0.78, 0.78, 0.78)));
+            let thickness = if weight[k] <= 4 {
+                rng.gen_range(0.009..0.01)
+            } else {
+                rng.gen_range(0.007..0.008)
+            };
+            let ring = Ring::new(i as f64 / weight[k] as f64, thickness, Lambertian::new(Color::new(0.78, 0.78, 0.78)));
             world.add(Arc::new(ring));
         }
         now += delta;
@@ -707,9 +762,10 @@ pub fn wwscene() -> (HittableList, HittableList) {
             2 => Color::new(0., 1., 1.),
             _ => Color::new(1., 0., 1.),
         };
-        let star = Sphere::new(Point3::new(rng.gen_range(-500.0..=500.0), rng.gen_range(-300.0..=300.0), rng.gen_range(200.0..=400.0)), rng.gen_range(0.2..=0.5), DiffuseLight::new(scolor));
+        let star = Sphere::new(Point3::new(rng.gen_range(-500.0..=500.0), rng.gen_range(-500.0..=500.0), rng.gen_range(100.0..=400.0)), rng.gen_range(0.3..=0.45), DiffuseLight::new(scolor));
         world.add(Arc::new(star))
     }
+
 
     // add 
 //     let flat_rect = XZRect::new(
