@@ -642,7 +642,7 @@ fn get_iss(world: &mut HittableList) {
 fn get_ship(world: &mut HittableList) {
 
     let file_path = "source/obj/";
-    let file_name = file_path.to_string() + "Ship.obj";
+    let file_name = file_path.to_string() + "Ship2.obj";
 
     let obj = tobj::load_obj(
         file_name,
@@ -690,9 +690,9 @@ fn get_ship(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 0.0006);
-        let object = RotateY::new(object, 156.);
-        let object = Translate::new(object, Vec3::new(2.2, 13.3, -145.80));
+        let object = Zoom::new(object, 0.56);
+        let object = RotateY::new(object, 153.);
+        let object = Translate::new(object, Vec3::new(15., 2., -116.));
         world.add(Arc::new(object));
     }
 
@@ -755,7 +755,7 @@ pub fn wwscene() -> (HittableList, HittableList) {
 //     )));
 
     // ring star
-    let mut rng = rand::thread_rng();
+  let mut rng = rand::thread_rng();
     for i in 0..40 {
         let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
         pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
@@ -812,16 +812,6 @@ pub fn wwscene() -> (HittableList, HittableList) {
     }
 
 
-    // add 
-//     let flat_rect = XZRect::new(
-//         -500.,
-//         500.,
-//         -500.,
-//         500.,
-//         -0.0001,
-//         Dielectric::new(1.5),
-//     );
-//     world.add(Arc::new(flat_rect));
     
     // Import Object
     get_Shuttle(&mut world);
