@@ -509,39 +509,13 @@ fn get_Shuttle(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 12.);
+        let object = Zoom::new(object, 13.5);
         let object = RotateY::new(object, 56.);
-        let object = Translate::new(object, Vec3::new(29.88, 1.3, -102.59));
+        let object = Translate::new(object, Vec3::new(40.88, 1.3, -85.59));
+        // let object = Translate::new(object, Vec3::new(29.88, 1.3, -102.59));
         world.add(Arc::new(object));
     }
 
-    //    for (i, m) in materials.iter().enumerate() {
-    //        println!("material[{}].name = \'{}\'", i, m.name);
-    //        println!(
-    //            "    material.Ka = ({}, {}, {})",
-    //            m.ambient[0], m.ambient[1], m.ambient[2]
-    //        );
-    //        println!(
-    //            "    material.Kd = ({}, {}, {})",
-    //            m.diffuse[0], m.diffuse[1], m.diffuse[2]
-    //        );
-    //        println!(
-    //            "    material.Ks = ({}, {}, {})",
-    //            m.specular[0], m.specular[1], m.specular[2]
-    //        );
-    //        println!("    material.Ns = {}", m.shininess);
-    //        println!("    material.d = {}", m.dissolve);
-    //        println!("    material.map_Ka = {}", m.ambient_texture);
-    //        println!("    material.map_Kd = {}", m.diffuse_texture);
-    //        println!("    material.map_Ks = {}", m.specular_texture);
-    //        println!("    material.map_Ns = {}", m.shininess_texture);
-    //        println!("    material.map_Bump = {}", m.normal_texture);
-    //        println!("    material.map_d = {}", m.dissolve_texture);
-    //
-    //        for (k, v) in &m.unknown_param {
-    //            println!("    material.{} = {}", k, v);
-    //        }
-    //    }
 }
 
 fn get_Curiosity(world: &mut HittableList) {
@@ -563,22 +537,130 @@ fn get_Curiosity(world: &mut HittableList) {
 
     let (models, _materials) = obj.expect("Failed to load OBJ file");
 
-    // Materials might report a separate loading error if the MTL file wasn't found.
-    // If you don't need the materials, you can generate a default here and use that
-    // instead.
-    // let materials = _materials.expect("Failed to load MTL file");
+    for (_i, m) in models.iter().enumerate() {
+        let mesh = &m.mesh;
+
+        let mut vertices: Vec<Point3> = Vec::default();
+        for v in 0..mesh.positions.len() / 3 {
+            let x = mesh.positions[3 * v] as f64;
+            let y = mesh.positions[3 * v + 1] as f64;
+            let z = mesh.positions[3 * v + 2] as f64;
+            vertices.push(Point3::new(x, y, z));
+        }
+        let mut object = HittableList::default();
+
+        for v in 0..mesh.indices.len() / 3 {
+            let x = mesh.indices[v * 3] as usize;
+            let y = mesh.indices[v * 3 + 1] as usize;
+            let z = mesh.indices[v * 3 + 2] as usize;
+
+            let tri = Triangle::new(
+                vertices[x],
+                vertices[y],
+                vertices[z],
+                Lambertian::new(Color::new(0.78, 0.78, 0.78)),
+            );
+            object.add(Arc::new(tri));
+        }
+
+        let object = BvhNode::new_list(&object, 0., 1.);
+        let object = Zoom::new(object, 8.);
+        let object = RotateY::new(object, 80.);
+        let object = Translate::new(object, Vec3::new(60., -37.6, 0.));
+        world.add(Arc::new(object));
+    }
+}
+
+fn get_iss(world: &mut HittableList) {
+
+    let file_path = "source/obj/";
+    let file_name = file_path.to_string() + "ISS.obj";
+
+    let obj = tobj::load_obj(
+        file_name,
+        &tobj::LoadOptions {
+            single_index: true,
+            triangulate: true,
+            ..Default::default()
+        },
+    );
+
+    assert!(obj.is_ok());
+
+    let (models, _materials) = obj.expect("Failed to load OBJ file");
+
+    let materials = _materials.expect("Failed to load MTL file");
 
     for (_i, m) in models.iter().enumerate() {
         let mesh = &m.mesh;
 
-        // if mesh.positions.len() % 9 != 0 {
-        // println!("{}", mesh.positions.len());
-        // std::process::exit(0);
-        // }
+        let mut vertices: Vec<Point3> = Vec::default();
+        for v in 0..mesh.positions.len() / 3 {
+            let x = mesh.positions[3 * v] as f64;
+            let y = mesh.positions[3 * v + 1] as f64;
+            let z = mesh.positions[3 * v + 2] as f64;
+            vertices.push(Point3::new(x, y, z));
+        }
+        let mut object = HittableList::default();
+        let mut file_jpg = file_path.to_string();
+        file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
+        let image = Arc::new(image::open(file_jpg).expect("failed").to_rgb8());
 
-        // print!("{}, ", mesh.material_id.unwrap());
-        // print!("{}, ", materials[mesh.material_id.unwrap()].name);
-        // println!("{}", );
+        for v in 0..mesh.indices.len() / 3 {
+            let x = mesh.indices[v * 3] as usize;
+            let y = mesh.indices[v * 3 + 1] as usize;
+            let z = mesh.indices[v * 3 + 2] as usize;
+
+            let u1 = mesh.texcoords[(x * 2)] as f64;
+            let v1 = mesh.texcoords[(x * 2 + 1)] as f64;
+            let u2 = mesh.texcoords[(y * 2)] as f64;
+            let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
+            let u3 = mesh.texcoords[(z * 2)] as f64;
+            let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
+            
+            let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
+
+            let tri = Triangle::new(
+                vertices[x],
+                vertices[y],
+                vertices[z],
+                Lambertian::new_arc(tex_ptr),
+                // Lambertian::new(Color::new(0.78, 0.78, 0.78)),
+            );
+            object.add(Arc::new(tri));
+        }
+
+        let object = BvhNode::new_list(&object, 0., 1.);
+        let object = Zoom::new(object, 2.5);
+        let object = RotateY::new(object, -25.);
+        let object = Translate::new(object, Vec3::new(29.88, 2.3, -106.59));
+        world.add(Arc::new(object));
+    }
+
+}
+
+fn get_ship(world: &mut HittableList) {
+
+    let file_path = "source/obj/";
+    let file_name = file_path.to_string() + "Ship.obj";
+
+    let obj = tobj::load_obj(
+        file_name,
+        &tobj::LoadOptions {
+            single_index: true,
+            triangulate: true,
+            ..Default::default()
+        },
+    );
+
+    assert!(obj.is_ok());
+
+    let (models, _materials) = obj.expect("Failed to load OBJ file");
+
+    // let materials = _materials.expect("Failed to load MTL file");
+
+    for (_i, m) in models.iter().enumerate() {
+        let mesh = &m.mesh;
 
         let mut vertices: Vec<Point3> = Vec::default();
         for v in 0..mesh.positions.len() / 3 {
@@ -597,15 +679,6 @@ fn get_Curiosity(world: &mut HittableList) {
             let y = mesh.indices[v * 3 + 1] as usize;
             let z = mesh.indices[v * 3 + 2] as usize;
 
-            // let u1 = mesh.texcoords[(x * 2)] as f64;
-            // let v1 = mesh.texcoords[(x * 2 + 1)] as f64;
-            // let u2 = mesh.texcoords[(y * 2)] as f64;
-            // let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
-            // let u3 = mesh.texcoords[(z * 2)] as f64;
-            // let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
-            
-            // let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
-
             let tri = Triangle::new(
                 vertices[x],
                 vertices[y],
@@ -617,39 +690,12 @@ fn get_Curiosity(world: &mut HittableList) {
         }
 
         let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 8.);
-        let object = RotateY::new(object, 80.);
-        let object = Translate::new(object, Vec3::new(60., -37.6, 0.));
+        let object = Zoom::new(object, 0.0006);
+        let object = RotateY::new(object, 156.);
+        let object = Translate::new(object, Vec3::new(2.2, 13.3, -145.80));
         world.add(Arc::new(object));
     }
 
-    //    for (i, m) in materials.iter().enumerate() {
-    //        println!("material[{}].name = \'{}\'", i, m.name);
-    //        println!(
-    //            "    material.Ka = ({}, {}, {})",
-    //            m.ambient[0], m.ambient[1], m.ambient[2]
-    //        );
-    //        println!(
-    //            "    material.Kd = ({}, {}, {})",
-    //            m.diffuse[0], m.diffuse[1], m.diffuse[2]
-    //        );
-    //        println!(
-    //            "    material.Ks = ({}, {}, {})",
-    //            m.specular[0], m.specular[1], m.specular[2]
-    //        );
-    //        println!("    material.Ns = {}", m.shininess);
-    //        println!("    material.d = {}", m.dissolve);
-    //        println!("    material.map_Ka = {}", m.ambient_texture);
-    //        println!("    material.map_Kd = {}", m.diffuse_texture);
-    //        println!("    material.map_Ks = {}", m.specular_texture);
-    //        println!("    material.map_Ns = {}", m.shininess_texture);
-    //        println!("    material.map_Bump = {}", m.normal_texture);
-    //        println!("    material.map_d = {}", m.dissolve_texture);
-    //
-    //        for (k, v) in &m.unknown_param {
-    //            println!("    material.{} = {}", k, v);
-    //        }
-    //    }
 }
 
 #[allow(dead_code)]
@@ -710,21 +756,20 @@ pub fn wwscene() -> (HittableList, HittableList) {
 
     // ring star
     let mut rng = rand::thread_rng();
-//    for i in 0..100 {
-//        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
-//        pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
-//        let dc = match i % 3 {
-//            0 => Color::new(0., 1., 1.),
-//            1 => Color::new(1., 0., 1.),
-//            _ => Color::new(1., 1., 0.),
-//        };
-//        let ring_star = Sphere::new(
-//            pos, 
-//            rng.gen_range(0.3..=0.6),
-//            DiffuseLight::new(dc));
-//        world.add(Arc::new(ring_star));
-//    }
-    for _i in 0..50 {
+    for i in 0..40 {
+        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
+        pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
+        // let dc = Color::random(0., 1.);
+        let albedo = Color::random(0.5, 1.);
+        let fuzz = rng.gen_range(0.0..0.5);
+        let ring_star = Sphere::new(
+            pos, 
+            rng.gen_range(0.3..=0.5),
+            Metal::new(albedo, fuzz),
+        );
+        world.add(Arc::new(ring_star));
+    }
+    for _i in 0..40 {
         let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
         pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
         let ring_star = Sphere::new(
@@ -780,7 +825,8 @@ pub fn wwscene() -> (HittableList, HittableList) {
     
     // Import Object
     get_Shuttle(&mut world);
-
+    // get_iss(&mut world);
+    get_ship(&mut world);
     
     (world, lights)
 }

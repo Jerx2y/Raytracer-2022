@@ -31,13 +31,13 @@ fn main() {
 
     // Image
     let path = "output/output.jpg";
-    const IMAGE_WIDTH: u32 = 2560;
-    const IMAGE_HEIGHT: u32 = 1440;
+    const IMAGE_WIDTH: u32 = 800;
+    const IMAGE_HEIGHT: u32 = 450;
     const ASPECT_RATIO: f64 = IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64;
     const IMAGE_QUALITY: u8 = 100; // From 0 to 100
-    const SAMPLES_PER_PIXEL: i32 = 1000;
+    const SAMPLES_PER_PIXEL: i32 = 50;
     const MAX_DEPTH: i32 = 50;
-    const THREAD_NUMBER: u32 = 7;
+    const THREAD_NUMBER: u32 = 8;
     const SECTION_LINE_NUM: u32 = IMAGE_HEIGHT / THREAD_NUMBER;
 
     let vup = Vec3::new(1., 5., 0.);
