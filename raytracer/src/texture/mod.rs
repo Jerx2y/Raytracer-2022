@@ -150,6 +150,7 @@ pub struct ObjTexture {
 }
 
 impl ObjTexture {
+    #[allow(dead_code)]
     pub fn new(u1: f64, v1: f64, u2: f64, v2: f64, u3: f64, v3: f64, img: Arc<RgbImage>) -> Self {
         Self {
             u1,

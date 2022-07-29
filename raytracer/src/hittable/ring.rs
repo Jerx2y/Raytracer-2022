@@ -1,10 +1,16 @@
-use crate::{material::Material, basic::{vec::{Point3, Vec3}, ray::Ray}};
+use crate::{
+    basic::{
+        ray::Ray,
+        vec::{Point3, Vec3},
+    },
+    material::Material,
+};
 
-use super::{Hittable, bvh::aabb::AABB, HitRecord};
+use super::{bvh::aabb::AABB, HitRecord, Hittable};
 
 pub struct Ring<M>
 where
-    M: Material
+    M: Material,
 {
     pub r: f64,
     pub t: f64,
@@ -40,15 +46,7 @@ impl<M: Material> Hittable for Ring<M> {
             return None;
         }
 
-        let mut rec = HitRecord::new(
-            p,
-            Vec3::new(0., 1., 0.),
-            t,
-            0.,
-            0.,
-            false,
-            &self.mat,
-        );
+        let mut rec = HitRecord::new(p, Vec3::new(0., 1., 0.), t, 0., 0., false, &self.mat);
 
         rec.set_face_normal(r, Vec3::new(0., 1., 0.));
         Some(rec)

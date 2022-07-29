@@ -1,20 +1,21 @@
-use std::{sync::Arc};
+use std::sync::Arc;
 
 use rand::Rng;
 
 use crate::{
-    basic::vec::{Color, Point3, Vec3, random_in_unit_disk, random_in_unit_XZ_disk},
+    basic::vec::{random_in_unit_xz_disk, Color, Point3, Vec3},
     hittable::{
         aarect::{XYRect, XZRect, YZRect},
         boxes::Boxes,
         bvh::BvhNode,
         constantmedium::ConstantMedium,
+        ring::Ring,
         sphere::{MovingSphere, Sphere},
         triangle::Triangle,
-        FlipFace, HittableList, RotateY, Translate, Zoom, ring::{Ring, self},
+        FlipFace, HittableList, RotateY, Translate, Zoom,
     },
     material::{Dielectric, DiffuseLight, Lambertian, Metal},
-    texture::{CheckerTexture, ImageTexture, NoiseTexture, ObjTexture},
+    texture::{CheckerTexture, ImageTexture, NoiseTexture},
 };
 
 #[allow(dead_code)]
@@ -165,46 +166,10 @@ pub fn cornell_box() -> (HittableList, HittableList) {
     let mut world: HittableList = Default::default();
 
     let light_strong = DiffuseLight::new(Color::new(60., 60., 60.));
-    // let light_weak = DiffuseLight::new(Color::new(60.,60., 60.));
 
-    let light_top = XZRect::new(
-        213.0,
-        343.0,
-        127.0,
-        232.0,
-        554.0,
-        light_strong.clone(),
-    );
-//    let light_left = YZRect::new(
-//        100.0,
-//        300.0,
-//        100.0,
-//        150.0,
-//        554.0,
-//        light_weak.clone(),
-//    );
-//    let light_right = YZRect::new(
-//        100.0,
-//        300.0,
-//        100.0,
-//        150.0,
-//        1.0,
-//        light_weak,
-//    );
-//    let light_front = XYRect::new(
-//        0.0,
-//        555.0,
-//        0.0,
-//        555.0,
-//        -801.,
-//        light_strong,
-//    );
+    let light_top = XZRect::new(213.0, 343.0, 127.0, 232.0, 554.0, light_strong);
 
     world.add(Arc::new(FlipFace::new(light_top.clone())));
-//    world.add(Arc::new(FlipFace::new(light_left.clone())));
-//    world.add(Arc::new(light_right.clone()));
-//    world.add(Arc::new(light_front.clone()));
-
 
     let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
     let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
@@ -223,49 +188,9 @@ pub fn cornell_box() -> (HittableList, HittableList) {
     )));
     world.add(Arc::new(XYRect::new(0., 555., 0., 555., 555., white)));
 
-    // world.add(Arc::new(FlipFace::new(XYRect::new(213., 343., 217., 332., -100., light))));
-
-    //    let box1 = Boxes::new(
-    //        Point3::new(0., 0., 0.),
-    //        Point3::new(165., 330., 165.),
-    //        white,
-    //    );
-    //    let box1 = RotateY::new(box1, 15.);
-    //    let box1 = Arc::new(Translate::new(box1, Vec3::new(265., 0., 295.)));
-    //    world.add(box1);
-    //
-    //    let glass = Dielectric::new(1.5);
-    //    world.add(Arc::new(Sphere::new(
-    //        Point3::new(190., 90., 190.),
-    //        90.,
-    //        glass,
-    //    )));
-
-    // let mut box2: Arc<dyn Hittable> = Arc::new(Boxes::new(
-    //     Point3::new(0., 0., 0.),
-    //     Point3::new(165., 165., 165.),
-    //     white,
-    // ));
-    // box2 = Arc::new(RotateY::new(box2, -18.));
-    // box2 = Arc::new(Translate::new(box2, Vec3::new(130., 0., 65.)));
-    // world.add(box2);
-
-    // world.add(Arc::new(Triangle::new(
-    //     Point3::new(310., 450., 310.),
-    //     Point3::new(110., 450., 310.),
-    //     Point3::new(190., 250., 90.),
-    //     Lambertian::new(Color::new(0.25, 0.41, 1.)),
-    // )));
-
-    // objects
-    // get_object(&mut world);
-
     let mut lights = HittableList::default();
-    
+
     lights.add(Arc::new(light_top));
-//    lights.add(Arc::new(light_left));
-//    lights.add(Arc::new(light_right));
-//    lights.add(Arc::new(light_front));
 
     (world, lights)
 }
@@ -436,9 +361,7 @@ pub fn final_scene() -> HittableList {
     world
 }
 
-fn get_Shuttle(world: &mut HittableList) {
-
-    // let file_jpg = "source/obj/patrick.png";
+fn get_shuttle(world: &mut HittableList) {
     let file_path = "source/obj/";
     let file_name = file_path.to_string() + "Shuttle.obj";
 
@@ -455,22 +378,8 @@ fn get_Shuttle(world: &mut HittableList) {
 
     let (models, _materials) = obj.expect("Failed to load OBJ file");
 
-    // Materials might report a separate loading error if the MTL file wasn't found.
-    // If you don't need the materials, you can generate a default here and use that
-    // instead.
-    // let materials = _materials.expect("Failed to load MTL file");
-
     for (_i, m) in models.iter().enumerate() {
         let mesh = &m.mesh;
-
-        // if mesh.positions.len() % 9 != 0 {
-        // println!("{}", mesh.positions.len());
-        // std::process::exit(0);
-        // }
-
-        // print!("{}, ", mesh.material_id.unwrap());
-        // print!("{}, ", materials[mesh.material_id.unwrap()].name);
-        // println!("{}", );
 
         let mut vertices: Vec<Point3> = Vec::default();
         for v in 0..mesh.positions.len() / 3 {
@@ -480,23 +389,11 @@ fn get_Shuttle(world: &mut HittableList) {
             vertices.push(Point3::new(x, y, z));
         }
         let mut object = HittableList::default();
-        // let mut file_jpg = file_path.to_string();
-        // file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
-        // let image = Arc::new(image::open(file_jpg).expect("failed").to_rgb8());
 
         for v in 0..mesh.indices.len() / 3 {
             let x = mesh.indices[v * 3] as usize;
             let y = mesh.indices[v * 3 + 1] as usize;
             let z = mesh.indices[v * 3 + 2] as usize;
-
-            // let u1 = mesh.texcoords[(x * 2)] as f64;
-            // let v1 = mesh.texcoords[(x * 2 + 1)] as f64;
-            // let u2 = mesh.texcoords[(y * 2)] as f64;
-            // let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
-            // let u3 = mesh.texcoords[(z * 2)] as f64;
-            // let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
-            
-            // let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
 
             let tri = Triangle::new(
                 vertices[x],
@@ -512,137 +409,13 @@ fn get_Shuttle(world: &mut HittableList) {
         let object = Zoom::new(object, 13.5);
         let object = RotateY::new(object, 56.);
         let object = Translate::new(object, Vec3::new(40.88, 1.3, -85.59));
-        // let object = Translate::new(object, Vec3::new(29.88, 1.3, -102.59));
         world.add(Arc::new(object));
     }
-
-}
-
-fn get_Curiosity(world: &mut HittableList) {
-
-    // let file_jpg = "source/obj/patrick.png";
-    let file_path = "source/obj/";
-    let file_name = file_path.to_string() + "Curiosity.obj";
-
-    let obj = tobj::load_obj(
-        file_name,
-        &tobj::LoadOptions {
-            single_index: true,
-            triangulate: true,
-            ..Default::default()
-        },
-    );
-
-    assert!(obj.is_ok());
-
-    let (models, _materials) = obj.expect("Failed to load OBJ file");
-
-    for (_i, m) in models.iter().enumerate() {
-        let mesh = &m.mesh;
-
-        let mut vertices: Vec<Point3> = Vec::default();
-        for v in 0..mesh.positions.len() / 3 {
-            let x = mesh.positions[3 * v] as f64;
-            let y = mesh.positions[3 * v + 1] as f64;
-            let z = mesh.positions[3 * v + 2] as f64;
-            vertices.push(Point3::new(x, y, z));
-        }
-        let mut object = HittableList::default();
-
-        for v in 0..mesh.indices.len() / 3 {
-            let x = mesh.indices[v * 3] as usize;
-            let y = mesh.indices[v * 3 + 1] as usize;
-            let z = mesh.indices[v * 3 + 2] as usize;
-
-            let tri = Triangle::new(
-                vertices[x],
-                vertices[y],
-                vertices[z],
-                Lambertian::new(Color::new(0.78, 0.78, 0.78)),
-            );
-            object.add(Arc::new(tri));
-        }
-
-        let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 8.);
-        let object = RotateY::new(object, 80.);
-        let object = Translate::new(object, Vec3::new(60., -37.6, 0.));
-        world.add(Arc::new(object));
-    }
-}
-
-fn get_iss(world: &mut HittableList) {
-
-    let file_path = "source/obj/";
-    let file_name = file_path.to_string() + "ISS.obj";
-
-    let obj = tobj::load_obj(
-        file_name,
-        &tobj::LoadOptions {
-            single_index: true,
-            triangulate: true,
-            ..Default::default()
-        },
-    );
-
-    assert!(obj.is_ok());
-
-    let (models, _materials) = obj.expect("Failed to load OBJ file");
-
-    let materials = _materials.expect("Failed to load MTL file");
-
-    for (_i, m) in models.iter().enumerate() {
-        let mesh = &m.mesh;
-
-        let mut vertices: Vec<Point3> = Vec::default();
-        for v in 0..mesh.positions.len() / 3 {
-            let x = mesh.positions[3 * v] as f64;
-            let y = mesh.positions[3 * v + 1] as f64;
-            let z = mesh.positions[3 * v + 2] as f64;
-            vertices.push(Point3::new(x, y, z));
-        }
-        let mut object = HittableList::default();
-        let mut file_jpg = file_path.to_string();
-        file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
-        let image = Arc::new(image::open(file_jpg).expect("failed").to_rgb8());
-
-        for v in 0..mesh.indices.len() / 3 {
-            let x = mesh.indices[v * 3] as usize;
-            let y = mesh.indices[v * 3 + 1] as usize;
-            let z = mesh.indices[v * 3 + 2] as usize;
-
-            let u1 = mesh.texcoords[(x * 2)] as f64;
-            let v1 = mesh.texcoords[(x * 2 + 1)] as f64;
-            let u2 = mesh.texcoords[(y * 2)] as f64;
-            let v2 = mesh.texcoords[(y * 2 + 1)] as f64;
-            let u3 = mesh.texcoords[(z * 2)] as f64;
-            let v3 = mesh.texcoords[(z * 2 + 1)] as f64;
-            
-            let tex_ptr = ObjTexture::new(u1, v1, u2, v2, u3, v3, image.clone());
-
-            let tri = Triangle::new(
-                vertices[x],
-                vertices[y],
-                vertices[z],
-                Lambertian::new_arc(tex_ptr),
-                // Lambertian::new(Color::new(0.78, 0.78, 0.78)),
-            );
-            object.add(Arc::new(tri));
-        }
-
-        let object = BvhNode::new_list(&object, 0., 1.);
-        let object = Zoom::new(object, 2.5);
-        let object = RotateY::new(object, -25.);
-        let object = Translate::new(object, Vec3::new(29.88, 2.3, -106.59));
-        world.add(Arc::new(object));
-    }
-
 }
 
 fn get_ship(world: &mut HittableList) {
-
     let file_path = "source/obj/";
-    let file_name = file_path.to_string() + "Ship2.obj";
+    let file_name = file_path.to_string() + "Ship.obj";
 
     let obj = tobj::load_obj(
         file_name,
@@ -657,8 +430,6 @@ fn get_ship(world: &mut HittableList) {
 
     let (models, _materials) = obj.expect("Failed to load OBJ file");
 
-    // let materials = _materials.expect("Failed to load MTL file");
-
     for (_i, m) in models.iter().enumerate() {
         let mesh = &m.mesh;
 
@@ -670,9 +441,6 @@ fn get_ship(world: &mut HittableList) {
             vertices.push(Point3::new(x, y, z));
         }
         let mut object = HittableList::default();
-        // let mut file_jpg = file_path.to_string();
-        // file_jpg += materials[mesh.material_id.unwrap()].diffuse_texture.as_str();
-        // let image = Arc::new(image::open(file_jpg).expect("failed").to_rgb8());
 
         for v in 0..mesh.indices.len() / 3 {
             let x = mesh.indices[v * 3] as usize;
@@ -683,7 +451,6 @@ fn get_ship(world: &mut HittableList) {
                 vertices[x],
                 vertices[y],
                 vertices[z],
-                // Lambertian::new_arc(tex_ptr),
                 Lambertian::new(Color::new(0.78, 0.78, 0.78)),
             );
             object.add(Arc::new(tri));
@@ -695,7 +462,6 @@ fn get_ship(world: &mut HittableList) {
         let object = Translate::new(object, Vec3::new(15., 2., -116.));
         world.add(Arc::new(object));
     }
-
 }
 
 #[allow(dead_code)]
@@ -705,18 +471,7 @@ pub fn wwscene() -> (HittableList, HittableList) {
 
     // Lights
     let light_strong = DiffuseLight::new(Color::new(130., 130., 130.));
-//    let light_sphere = Sphere::new(
-//        Point3::new(200., 200., 200.),
-//        20.,
-//        light_strong.clone(),
-//    );
-//    world.add(Arc::new(light_sphere.clone()));
-//    lights.add(Arc::new(light_sphere));
-    let light_sphere = Sphere::new(
-        Point3::new(800., 700., -800.),
-        70.,
-        light_strong,
-    );
+    let light_sphere = Sphere::new(Point3::new(800., 700., -800.), 70., light_strong);
     world.add(Arc::new(light_sphere.clone()));
     lights.add(Arc::new(light_sphere));
 
@@ -726,7 +481,7 @@ pub fn wwscene() -> (HittableList, HittableList) {
     world.add(Arc::new(Sphere::new(
         Point3::new(0., 0., 0.),
         43.,
-        saturn_surface
+        saturn_surface,
     )));
 
     // Jupiter
@@ -735,9 +490,8 @@ pub fn wwscene() -> (HittableList, HittableList) {
     world.add(Arc::new(Sphere::new(
         Point3::new(150., 20., 150.),
         26.,
-        jupiter_surface
+        jupiter_surface,
     )));
-
 
     // Mars
     let mars_texture = ImageTexture::new("source/Mars.jpg");
@@ -745,38 +499,23 @@ pub fn wwscene() -> (HittableList, HittableList) {
     world.add(Arc::new(Sphere::new(
         Point3::new(480., 25., 500.),
         25.,
-        mars_surface
+        mars_surface,
     )));
-    
-//     world.add(Arc::new(Sphere::new(
-//         Point3::new(0., 0., 0.),
-//         -43.,
-//         Dielectric::new(1.5),
-//     )));
 
     // ring star
-  let mut rng = rand::thread_rng();
-    for i in 0..40 {
-        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
+    let mut rng = rand::thread_rng();
+    for _i in 0..40 {
+        let mut pos = random_in_unit_xz_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
         pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
-        // let dc = Color::random(0., 1.);
         let albedo = Color::random(0.5, 1.);
         let fuzz = rng.gen_range(0.0..0.5);
-        let ring_star = Sphere::new(
-            pos, 
-            rng.gen_range(0.3..=0.5),
-            Metal::new(albedo, fuzz),
-        );
+        let ring_star = Sphere::new(pos, rng.gen_range(0.3..=0.5), Metal::new(albedo, fuzz));
         world.add(Arc::new(ring_star));
     }
     for _i in 0..40 {
-        let mut pos = random_in_unit_XZ_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
+        let mut pos = random_in_unit_xz_disk().to_unit() * (100. + rng.gen_range(-15.0..=15.0));
         pos += Vec3::new(0., 0., rng.gen_range(-1.0..=1.0));
-        let ring_star = Sphere::new(
-            pos, 
-            rng.gen_range(0.3..=0.6),
-            Dielectric::new(1.5),
-        );
+        let ring_star = Sphere::new(pos, rng.gen_range(0.3..=0.6), Dielectric::new(1.5));
         world.add(Arc::new(ring_star));
     }
 
@@ -785,6 +524,7 @@ pub fn wwscene() -> (HittableList, HittableList) {
     let delta: usize = 2;
     let weight: [usize; CNT] = [2, 3, 2, 3, 4, 3, 2, 2, 3, 2, 3, 4, 3, 6, 4, 5, 3, 3, 4, 3];
     let mut now = 80;
+    #[allow(clippy::needless_range_loop)]
     for k in 0..CNT {
         for i in now * weight[k]..(now + delta) * weight[k] {
             let thickness = if weight[k] <= 4 {
@@ -792,7 +532,11 @@ pub fn wwscene() -> (HittableList, HittableList) {
             } else {
                 rng.gen_range(0.007..0.008)
             };
-            let ring = Ring::new(i as f64 / weight[k] as f64, thickness, Lambertian::new(Color::new(0.78, 0.78, 0.78)));
+            let ring = Ring::new(
+                i as f64 / weight[k] as f64,
+                thickness,
+                Lambertian::new(Color::new(0.78, 0.78, 0.78)),
+            );
             world.add(Arc::new(ring));
         }
         now += delta;
@@ -807,16 +551,21 @@ pub fn wwscene() -> (HittableList, HittableList) {
             2 => Color::new(0., 1., 1.),
             _ => Color::new(1., 0., 1.),
         };
-        let star = Sphere::new(Point3::new(rng.gen_range(-500.0..=500.0), rng.gen_range(-500.0..=500.0), rng.gen_range(100.0..=400.0)), rng.gen_range(0.3..=0.45), DiffuseLight::new(scolor));
+        let star = Sphere::new(
+            Point3::new(
+                rng.gen_range(-500.0..=500.0),
+                rng.gen_range(-500.0..=500.0),
+                rng.gen_range(100.0..=400.0),
+            ),
+            rng.gen_range(0.3..=0.45),
+            DiffuseLight::new(scolor),
+        );
         world.add(Arc::new(star))
     }
 
-
-    
     // Import Object
-    get_Shuttle(&mut world);
-    // get_iss(&mut world);
+    get_shuttle(&mut world);
     get_ship(&mut world);
-    
+
     (world, lights)
 }
